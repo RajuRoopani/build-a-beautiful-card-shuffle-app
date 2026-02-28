@@ -15,12 +15,18 @@ from fastapi.responses import JSONResponse, RedirectResponse
 
 from src.url_shortener.models import ShortenRequest, ShortenResponse, StatsResponse
 from src.url_shortener import storage
+from src.url_shortener.rate_limiter import RateLimitMiddleware
 
 app = FastAPI(
     title="URL Shortener API",
     description="A production-grade URL Shortener with click statistics.",
     version="1.0.0",
 )
+
+# ---------------------------------------------------------------------------
+# Middleware — token-bucket rate limiting: 100 req/min per IP
+# ---------------------------------------------------------------------------
+app.add_middleware(RateLimitMiddleware, rate_limit=100, window_seconds=60.0)
 
 _SHORT_CODE_LENGTH: int = 7
 _ALPHABET: str = string.ascii_letters + string.digits
