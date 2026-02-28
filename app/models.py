@@ -45,7 +45,7 @@ id_counter: int = 0
 def reset_storage() -> None:
     """Reset the in-memory storage. Useful for testing."""
     global notes_db, id_counter
-    notes_db = {}
+    notes_db.clear()
     id_counter = 0
 
 
