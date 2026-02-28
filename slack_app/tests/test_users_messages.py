@@ -27,6 +27,30 @@ class TestCreateUser:
         r2 = client.post("/users", json={"username": "u2", "display_name": "U2"})
         assert r1.json()["user_id"] != r2.json()["user_id"]
 
+    def test_create_user_missing_display_name_returns_422(self, client: TestClient):
+        """Pydantic should reject missing required fields."""
+        resp = client.post("/users", json={"username": "alice"})
+        assert resp.status_code == 422
+
+    def test_create_user_missing_username_returns_422(self, client: TestClient):
+        """Pydantic should reject missing required fields."""
+        resp = client.post("/users", json={"display_name": "Alice"})
+        assert resp.status_code == 422
+
+    def test_create_user_allows_empty_username(self, client: TestClient):
+        """Empty strings are technically valid per Pydantic string type."""
+        resp = client.post("/users", json={"username": "", "display_name": "Alice"})
+        assert resp.status_code == 201
+        assert resp.json()["username"] == ""
+
+    def test_create_user_has_iso_timestamp(self, client: TestClient):
+        """Verify created_at is a valid ISO-8601 timestamp."""
+        resp = client.post("/users", json={"username": "alice", "display_name": "Alice"})
+        created_at = resp.json()["created_at"]
+        # Should be parseable as ISO format (contains T and +00:00 or Z)
+        assert "T" in created_at
+        assert "+" in created_at or "Z" in created_at
+
 
 class TestListUsers:
     def test_list_users_empty(self, client: TestClient):
