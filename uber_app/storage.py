@@ -11,15 +11,7 @@ rides: dict = {}
 
 
 def clear_all() -> None:
-    """Clear all in-memory storage."""
-    riders.clear()
-    drivers.clear()
-    rides.clear()
-
-
-def clear_all() -> None:
-    """Clear all in-memory storage."""
-    global riders, drivers, rides
+    """Clear all in-memory storage (used between tests)."""
     riders.clear()
     drivers.clear()
     rides.clear()
