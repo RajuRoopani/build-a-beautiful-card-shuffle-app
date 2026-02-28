@@ -1,362 +1,232 @@
-# Task Management Dashboard
+# Card Shuffle App
 
-A lightweight, browser-based task management application built with vanilla HTML, CSS, and JavaScript. No frameworks, no build tools, no backend server — just open `index.html` in your browser and start managing your tasks.
-
----
+A beautiful, single-page card shuffle application with casino aesthetics, smooth animations, and accessible design. Shuffle a 52-card deck with the Fisher-Yates algorithm and see each card revealed with a stunning 3D flip effect.
 
 ## Features
 
-- **View Tasks** — See all your tasks in a scrollable sidebar list with status indicators
-- **Filter by Status** — Quick filter buttons to view All, To Do, In Progress, or Done tasks
-- **Task Details** — Click any task to view its full description, creation date, and current status
-- **Create Tasks** — Add new tasks via a modal form with title and description
-- **Change Status** — Update task status using a dropdown in the detail panel
-- **Status Badges** — Color-coded badges (🔴 todo, 🟡 in-progress, 🟢 done) for quick visual identification
-- **Responsive Layout** — Two-column desktop design that adapts to your screen size
-- **No Setup Required** — Works immediately in any modern browser; in-memory data resets on refresh
+- **Fisher-Yates Shuffle** — Guaranteed uniform randomness, no algorithmic bias
+- **Animated Card Reveal** — 3D flip effect with smooth entrance/exit animations
+- **Casino Green Felt Aesthetic** — Deep forest green (#1B4332) with warm gold accents, reminiscent of luxury casinos
+- **CSS-Only Card Back Pattern** — Crosshatch design on navy background (no images, no SVGs)
+- **Stats Tracking** — Real-time counters for cards drawn, cards remaining, and total shuffles
+- **Deck Depletion Tracking** — Visual display of remaining cards in the deck
+- **Reset Deck Functionality** — Instantly rebuild the deck and reset session stats
+- **Fully Responsive** — Mobile-first design with `600px` breakpoint (side-by-side desktop, stacked mobile)
+- **ARIA-Accessible** — Screen reader announcements, keyboard-operable buttons, semantic HTML, live regions
+- **No External Dependencies** — Pure vanilla HTML5, CSS3, and JavaScript (ES5 IIFE pattern). No build step, no server required.
 
----
+## Tech Stack
 
-## Getting Started
+- **HTML5** — Semantic markup with ARIA roles, labels, and live regions
+- **CSS3** — Custom properties, `@keyframes` animations, 3D transforms, `preserve-3d`
+- **JavaScript (ES5)** — IIFE module pattern, state machine architecture, DOM manipulation
+- **No Frameworks** — Lightweight, fast, zero dependencies
 
-### Prerequisites
-- A modern web browser (Chrome, Firefox, Safari, or Edge)
-- That's it! No Node.js, no Python, no dependencies to install.
-
-### Installation
-Simply clone the repository and open `index.html` in your browser:
-
-```bash
-git clone https://github.com/RajuRoopani/build-a-task-management-dashboard.git
-cd build-a-task-management-dashboard
-open index.html
-```
-
-Or if you prefer to use a local web server:
-
-```bash
-# Python 3
-python -m http.server 8000
-
-# Node.js with http-server
-npx http-server
-
-# Then visit http://localhost:8000 in your browser
-```
-
----
-
-## Usage
-
-### Quick Walkthrough
-
-1. **Open the App** — Launch `index.html` in your browser
-   - The dashboard loads with 3 sample tasks (one for each status)
-
-2. **Browse Tasks** — View tasks in the left sidebar
-   - Each task shows its title and a color-coded status badge
-
-3. **Filter Tasks** — Click the filter buttons at the top of the sidebar
-   - Select **All** to see everything
-   - Select **To Do**, **In Progress**, or **Done** to filter by status
-
-4. **View Details** — Click a task to see its full information
-   - The right panel displays the title, description, and creation date
-   - A dropdown allows you to change the status immediately
-
-5. **Create a Task** — Click the **+ New Task** button in the header
-   - Fill in the title (required) and description (optional)
-   - Click **Create** to add the task
-   - The new task appears in the sidebar and is automatically selected
-
-6. **Update Status** — Select a task and use the status dropdown in the detail panel
-   - Changes are reflected immediately in the sidebar badges
-
-### Important Notes
-
-- **In-Memory Storage** — All tasks live in your browser's memory
-- **No Persistence** — Refreshing the page resets to the original 3 sample tasks
-- **No Sync** — Tasks are not saved to a server or localStorage
-- This is perfect for quick task planning sessions or demonstrating the UI
-
----
-
-## Project Structure
+## File Structure
 
 ```
-.
-├── index.html          — Semantic HTML markup with dialog for the modal form
-├── style.css           — CSS Grid layout, Flexbox styling, and color-coded badges
-├── app.js              — Complete application logic with Revealing Module Pattern
-└── README.md           — This file
+index.html          Semantic markup with ARIA attributes, card containers, controls
+style.css           Casino theme with CSS custom properties, animations, responsive layout
+app.js              State machine, Fisher-Yates shuffle, animation orchestration, event wiring
+README.md           This file
 ```
 
-### File Descriptions
+## How to Run
 
-| File | Purpose |
-|------|---------|
-| **index.html** | Declares the page structure, links CSS/JS, and provides semantic DOM elements for the sidebar, detail panel, and modal |
-| **style.css** | All visual styling including CSS Grid (2-column layout), Flexbox (internal arrangement), color schemes, and responsive design |
-| **app.js** | Application logic: data store, task management (add/update/filter), rendering functions, and event delegation |
-| **README.md** | Setup instructions and feature overview |
+1. **Open `index.html` in any modern browser:**
+   ```bash
+   # On macOS / Linux
+   open index.html
+   
+   # On Windows
+   start index.html
+   
+   # Or just double-click the file in your file manager
+   ```
 
----
+2. **Click "Shuffle & Draw"** to shuffle the deck and reveal a random card
+3. **Click "Reset Deck"** to rebuild the deck and reset stats
+4. **Click the deck stack itself** as a shortcut to trigger a shuffle
 
-## Technical Details
+No build step, no dependencies — just open the file and play.
 
-### Architecture
+## Design Decisions
 
-The application uses the **Revealing Module Pattern** — a clean, ES5-compatible approach that avoids global namespace pollution without requiring a build step.
+### Color Palette
+- **Deep Casino Green** (`#1B4332`) — App background, evokes Vegas luxury
+- **Warm Gold** (`#F0C040`) — Primary button color, accents (high contrast, premium feel)
+- **Warm White** (`#FAFAF5`) — Card face background (readable, not pure white)
+- **Card Red** (`#C0392B`) — Hearts and Diamonds suit color
+- **Card Black** (`#1a1a2e`) — Spades and Clubs suit color
+- **Navy Back** (`#1a1a6e`) — Card back base with crosshatch pattern
 
+### Typography
+- **Georgia, serif** — Card content (rank, suit) — traditional, casino-like
+- **system-ui, sans-serif** — UI chrome (buttons, stats, labels) — modern, readable
+- **No external font imports** — Georgia is universally available, no FOUT risk
+
+### Card Back Pattern
+CSS-only crosshatch design (45° + -45° repeating gradients) on navy:
+```css
+repeating-linear-gradient(45deg, ...)   /* forward slash */
+repeating-linear-gradient(-45deg, ...)  /* backslash */
+background-color: #1a1a6e;              /* navy base */
 ```
-app.js Structure:
-├── STORE
-│   ├── Task data array (3 seed tasks)
-│   ├── Active filter state
-│   └── Active task selection
-│
-├── SIDEBAR
-│   └── Render task list with current filter applied
-│
-├── DETAIL PANEL
-│   └── Render selected task or empty state
-│
-├── MODAL
-│   ├── Form input validation
-│   └── Task creation handler
-│
-├── FILTERS
-│   └── Filter button state management
-│
-├── EVENT WIRING
-│   └── Single delegated click handler for all user interactions
-│
-└── INIT
-    └── Bootstrap rendering and event listeners
-```
+No images or SVGs needed — pure CSS for instant load time.
 
-### Layout Strategy
+### Card Aspect Ratio
+**5:7** (standard poker card dimensions)
+- Desktop: 160px × 224px (reveal card), ~100px × 140px (deck cards)
+- Mobile: 120px × 168px (reveal card), ~80px × 112px (deck cards)
 
-- **CSS Grid** — Two-column layout (fixed sidebar + fluid main area) fills the entire viewport
-- **Flexbox** — Used within each column for internal arrangement
-- **Native `<dialog>`** — Modern HTML modal element (no jQuery, no manual z-index management)
-- **Mobile-Friendly** — Sidebar takes priority on smaller screens
-
-```
-┌─────────────────────────────────────────┐
-│  Header: Task Dashboard  [+ New Task]  │
-├──────────────────┬──────────────────────┤
-│  [Filters]       │                      │
-│  ─────────────── │  Task Details        │
-│  □ Task A  todo  │  (title, status,     │
-│  □ Task B  prog  │   description)       │
-│  □ Task C  done  │                      │
-│                  │                      │
-└──────────────────┴──────────────────────┘
-┌─────────────────────────────────────────┐
-│  Modal (centered overlay, when open)   │
-└─────────────────────────────────────────┘
-```
-
-### Data Model
-
-Each task is a plain JavaScript object:
-
-```js
-{
-  id:          String,        // Unique identifier (e.g. "seed-1")
-  title:       String,        // Task name (max 100 chars)
-  description: String,        // Details (optional)
-  status:      "todo" | "in-progress" | "done",
-  createdDate: String         // ISO 8601 timestamp
-}
-```
-
-### Browser Support
-
-- ✅ Chrome 37+
-- ✅ Firefox 98+
-- ✅ Safari 15.4+
-- ✅ Edge 79+
-
-(Requires `<dialog>` element support, available in all modern browsers)
-
-### Performance
-
-- **Rendering** — Full re-render of each section (sidebar, detail panel) on state changes
-- **Data Scale** — Optimized for ~50–200 tasks; no virtual scrolling needed at this scale
-- **Memory** — All state held in a single JS array; no localStorage or API calls
-- **Load Time** — Instant; all code loads synchronously in ~10ms
-
----
-
-## Seed Data
-
-The application comes with 3 sample tasks to demonstrate the interface:
-
-```js
-1. "Set up project repository" — Status: Done
-   Description: Initialize the GitHub repo, add README and folder structure.
-   Created: 2025-01-10T09:00:00.000Z
-
-2. "Design wireframes" — Status: In Progress
-   Description: Create low-fidelity wireframes for the dashboard layout.
-   Created: 2025-01-12T11:30:00.000Z
-
-3. "Write unit tests" — Status: To Do
-   Description: Add tests for task CRUD operations and filter logic.
-   Created: 2025-01-14T08:00:00.000Z
-```
-
----
+### Pure CSS Animations
+- **Deck spread** — 400ms, fans cards outward via `transform: rotate()` and `translate()`
+- **Deck reassemble** — 600ms, pulls cards back together with easing
+- **Card flip** — 600ms, uses `rotateY()` with `preserve-3d` and `backface-visibility`
+- **Card entrance** — 300ms, scales and fades in
+- **Card exit** — 400ms, scales and fades out
+- **No GSAP or animation libraries** — all effects use native CSS `@keyframes` and `transition`
 
 ## Accessibility
 
-- **Semantic HTML** — Uses `<aside>`, `<main>`, `<dialog>`, and proper heading hierarchy
-- **Focus Management** — Modal traps focus inside the dialog element
-- **Screen Readers** — Active task indicated with `aria-selected`, badges use `aria-label`
-- **Keyboard Navigation** — All controls are keyboard-accessible via native focus behavior
+### Semantic HTML
+- Proper heading hierarchy (`<h1>`, `<h2>`)
+- ARIA roles: `role="banner"`, `role="img"`, `role="region"`, `role="button"`
+- Alt text and aria-labels on all interactive elements
 
----
+### Screen Reader Support
+- `aria-label` on buttons: "Shuffle deck and draw a random card"
+- `aria-live="polite"` on reveal area — announces each new card drawn
+- `aria-atomic="true"` on card elements — provides full context to screen readers
+- Reveal label updates announce card rank and suit (e.g., "Ace of Spades")
 
-## Customization
+### Keyboard Navigation
+- All buttons are native `<button>` elements — fully keyboard operable
+- `Enter` and `Space` trigger buttons natively
+- `:focus` styles with gold outline for clear focus indicator
+- Deck stack click is keyboard-accessible via button alternative
 
-### Changing the Sample Data
+### Focus Management
+- Focus indicators visible in all states
+- Loading/disabled states clearly communicated
+- Tab order follows visual layout (left to right, top to bottom)
 
-Edit the `tasks` array at the top of `app.js`:
+## Browser Support
 
+Modern browsers with support for:
+- CSS custom properties (`--color-*`)
+- `transform-style: preserve-3d` (3D CSS transforms)
+- `@keyframes` animations
+- `requestAnimationFrame()` (JS animation orchestration)
+
+**Tested on:**
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
+
+## Architecture Overview
+
+### State Machine (`app.js`)
+```
+Idle → Shuffling → Revealing → Idle
+```
+- **Idle** — Waiting for user interaction, buttons enabled
+- **Shuffling** — Deck spread/reassemble animations running, buttons disabled
+- **Revealing** — Card flip animation running, buttons disabled
+
+### Data Model
 ```js
-const tasks = [
-  {
-    id: "your-id-1",
-    title: "Your Task Title",
-    description: "Your description",
-    status: "todo",
-    createdDate: new Date().toISOString(),
-  },
-  // ... more tasks
-];
+state = {
+  current: 'idle',
+  deck: [...52 cards...],           // Shuffled in place each round
+  revealedCard: {...card object...},
+  stats: {
+    drawn: 0,     // Cards revealed this session
+    shuffles: 0   // Times shuffled this session
+  }
+}
 ```
 
-### Styling
-
-All styles are in `style.css`. Key customization points:
-
-- **Color scheme** — Look for CSS variables or `.status-todo`, `.status-in-progress`, `.status-done` classes
-- **Layout dimensions** — Sidebar width and header height are defined in the grid template
-- **Fonts** — Set in the `body` rule using system fonts
-
-### Adding Persistence
-
-To save tasks to localStorage, modify `app.js`:
-
+### Fisher-Yates Shuffle
+Classic uniform-randomness shuffle (O(n) time, optimal):
 ```js
-// After adding/updating a task:
-localStorage.setItem('dashboard-tasks', JSON.stringify(tasks));
-
-// On app init, load saved data:
-const saved = localStorage.getItem('dashboard-tasks');
-if (saved) tasks = JSON.parse(saved);
+for (var i = deck.length - 1; i > 0; i--) {
+  var j = Math.floor(Math.random() * (i + 1));
+  // swap deck[i] and deck[j]
+}
 ```
 
----
+### Animation Timeline
+Each "Shuffle & Draw" cycle:
+1. **0ms** — setState(shuffling), disable buttons
+2. **0–400ms** — Fan deck spread outward (`deck--spread` class)
+3. **400–700ms** — Hold spread for visual effect
+4. **700–1100ms** — Reassemble deck (`deck--reassemble` class)
+5. **1100ms** — Trigger card reveal
+6. **1100–1700ms** — Card flip + zoom into reveal area (`reveal-card--flip` class)
+7. **1700ms** — Return to idle, re-enable buttons
 
-## Limitations & Future Ideas
+## Responsive Design
 
-### Current Limitations
+### Desktop (≥ 600px)
+- Deck and reveal area side-by-side in flexbox
+- Larger card dimensions (160×224px reveal, 100×140px deck)
+- Buttons stacked vertically in footer
+- 40px padding on stage sides
 
-- **In-Memory Only** — Data resets on refresh
-- **No Sync** — Single-user, single-device
-- **No Edit** — Can only view and change status, not modify title/description
-- **Limited Validation** — Basic checks on form input
+### Mobile (< 600px)
+- Deck and reveal area stacked vertically
+- Smaller card dimensions (120×168px reveal, 80×112px deck)
+- Buttons full-width
+- 16px padding on stage sides
+- Single-column layout, touch-friendly tap targets
 
-### Ideas for Enhancement
+## Stats Bar
 
-- [ ] LocalStorage persistence
-- [ ] Edit existing tasks (title/description)
-- [ ] Drag-and-drop to reorder tasks
-- [ ] Search/filter by text
-- [ ] Dark mode toggle
-- [ ] Subtasks or checklists
-- [ ] Tags/labels
-- [ ] Due dates with notifications
-- [ ] Export tasks as CSV or JSON
+Located at the bottom of the app:
+- **Drawn** — How many cards have been revealed this session
+- **Remaining** — 52 minus drawn (updates after each shuffle)
+- **Shuffles** — How many times "Shuffle & Draw" has been clicked
 
----
+All counters reset to 0 when "Reset Deck" is clicked.
 
 ## Development
 
-### Running Tests
+### Local Testing
+Simply open `index.html` in your browser. No localhost server needed.
 
-Currently, the app includes no formal test suite. To add tests, create a `tests/` directory with Jasmine, Jest, or Vitest and test the exposed functions from `app.js`.
+### Code Quality
+- **Strict mode** — `'use strict'` in IIFE prevents accidental global scope pollution
+- **Cross-browser compatible** — No ES6+, uses ES5 syntax for wide browser support
+- **Well-commented** — Code sections clearly marked with visual dividers
+- **No console logs** — Clean DevTools, suitable for production
 
-### Code Style
+### Adding New Features
+The state machine and IIFE pattern make it easy to extend:
+1. Add new state enum to `STATES` object
+2. Add state transition logic in event handlers
+3. Create new animation CSS classes and `@keyframes`
+4. Wire DOM selectors and event listeners in `bindEvents()`
 
-- **No Linter Required** — Vanilla JS with clear conventions
-- **Comments** — Inline comments explain complex logic
-- **Naming** — Function names are descriptive (e.g., `renderSidebar()`, `selectTask()`)
-- **No Build Step** — Single `<script>` tag in HTML loads everything
+## Known Limitations
 
-### Making Changes
-
-1. Edit HTML markup in `index.html`
-2. Update styles in `style.css`
-3. Implement logic in `app.js`
-4. Open `index.html` in your browser to test
-5. Use browser DevTools (F12) to debug
-
----
-
-## Troubleshooting
-
-### Tasks Are Disappearing After Refresh
-**Expected behavior!** This app uses in-memory storage only. To persist data, see "Adding Persistence" in the Customization section.
-
-### Modal Won't Close
-Make sure your browser supports the native `<dialog>` element. Check your browser version (Chrome 37+, Firefox 98+, Safari 15.4+, Edge 79+).
-
-### Styles Not Applying
-1. Ensure `style.css` is in the same directory as `index.html`
-2. Clear your browser cache (Ctrl+Shift+Delete or Cmd+Shift+Delete)
-3. Check the browser console for CSS load errors
-
-### JavaScript Errors in Console
-1. Check that `app.js` is in the same directory as `index.html`
-2. Open DevTools (F12) and review the console for specific errors
-3. Ensure you're using a modern browser (see Browser Support above)
-
----
-
-## Browser DevTools Tips
-
-- **Console** — Errors and `console.log()` output
-- **Elements/Inspector** — Inspect the DOM structure
-- **Network** — Verify CSS and JS files load correctly
-- **Performance** — Profile rendering if the app feels slow
-
----
-
-## Contributing
-
-Improvements and suggestions welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Make your changes
-4. Test thoroughly in a browser
-5. Commit and push
-6. Open a pull request with a clear description
-
----
+- **No persistent deck depletion** — Each "Shuffle & Draw" reshuffles all 52 cards. If true depletion (not reshuffling mid-session) is desired, the game logic would need to track a draw pile separately.
+- **No sound effects** — Pure visual experience (could add Web Audio API, but out of scope for v1)
+- **No mobile swipe gestures** — Buttons and click/tap only (could add touch events in future)
+- **No progressive Web App (PWA) support** — No service worker for offline play (could add manifest + SW for offline capability)
 
 ## License
 
-MIT License — Feel free to use, modify, and distribute this project.
-
----
+Open source. Feel free to fork, modify, and use in personal or commercial projects.
 
 ## Credits
 
-Built by [Team Claw](https://github.com/RajuRoopani) — an autonomous multi-agent AI development team.
+- **Architect** — UI/UX design spec and semantic HTML structure
+- **Senior Dev 1** — JavaScript state machine, shuffle algorithm, animation orchestration
+- **Senior Dev 2** — CSS styling, casino aesthetic, 3D transforms and animations
+- **Junior Dev 1** — README documentation
 
-For the full architecture and design documentation, see [`docs/task-dashboard-design.md`](docs/task-dashboard-design.md).
+---
+
+**Enjoy the shuffle.** 🎰
