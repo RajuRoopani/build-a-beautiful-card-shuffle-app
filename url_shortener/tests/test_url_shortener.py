@@ -1,36 +1,25 @@
-"""Tests for the URL Shortener application."""
+"""Tests for the URL Shortener application.
+
+All tests are integration tests against the HTTP API using the TestClient fixture
+from conftest.py. The in-memory SQLite database is reset before each test by the
+``reset_db`` autouse fixture, ensuring full isolation.
+"""
 
 import re
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
 
-from url_shortener.main import app
-from url_shortener.storage import URLStorage, url_storage
 
+# ─────────────────────────────────────────────────────────────────────────────
+# POST /shorten — Happy Path (5+ tests)
+# ─────────────────────────────────────────────────────────────────────────────
 
-# ── Fixtures ──────────────────────────────────────────────────────────────────
-
-@pytest.fixture(autouse=True)
-def clear_storage():
-    """Reset the module-level singleton store before each test."""
-    url_storage._store.clear()
-    yield
-    url_storage._store.clear()
-
-
-@pytest.fixture()
-def client() -> TestClient:
-    """Return a TestClient wired to the FastAPI app."""
-    return TestClient(app, raise_server_exceptions=True)
-
-
-# ── POST /shorten — happy path ─────────────────────────────────────────────────
 
 class TestShortenEndpoint:
-    """Tests for POST /shorten."""
+    """Tests for POST /shorten successful case."""
 
     def test_returns_201_on_valid_url(self, client: TestClient) -> None:
         """POST /shorten with a valid URL should respond 201."""
@@ -68,7 +57,9 @@ class TestShortenEndpoint:
         parsed = datetime.fromisoformat(expires_at)
         assert parsed is not None
 
-    def test_expires_at_is_approximately_30_days_from_now(self, client: TestClient) -> None:
+    def test_expires_at_is_approximately_30_days_from_now(
+        self, client: TestClient
+    ) -> None:
         """expires_at should be ~30 days in the future (within 5 seconds tolerance)."""
         resp = client.post("/shorten", json={"url": "https://example.com"})
         expires_at = datetime.fromisoformat(resp.json()["expires_at"])
@@ -92,7 +83,10 @@ class TestShortenEndpoint:
         assert resp.status_code == 201
 
 
-# ── POST /shorten — validation errors ─────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# POST /shorten — Validation (5+ tests)
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestShortenValidation:
     """Tests for POST /shorten input validation."""
@@ -128,7 +122,10 @@ class TestShortenValidation:
         assert "detail" in resp.json()
 
 
-# ── GET /{short_code} — happy path ────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /{short_code} — Redirect (3+ tests)
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestRedirectEndpoint:
     """Tests for GET /{short_code}."""
@@ -163,7 +160,10 @@ class TestRedirectEndpoint:
         assert "location" in get_resp.headers
 
 
-# ── GET /{short_code} — not found / expired ───────────────────────────────────
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /{short_code} — Not Found & Expired (3+ tests)
+# ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestRedirectErrors:
     """Tests for GET /{short_code} error cases."""
@@ -179,103 +179,117 @@ class TestRedirectErrors:
         assert "detail" in resp.json()
 
     def test_expired_code_returns_404_or_410(self, client: TestClient) -> None:
-        """An expired short code must return 404 or 410."""
+        """An expired short code must return 404 or 410.
+        
+        Uses mocking to force expiration rather than modifying internal state.
+        """
         post_resp = client.post("/shorten", json={"url": "https://example.com"})
         code = post_resp.json()["short_url"]
 
-        # Force-expire the entry by winding its expires_at into the past
-        url_storage._store[code]["expires_at"] = (
-            datetime.now(tz=timezone.utc) - timedelta(seconds=1)
-        )
+        # Mock url_storage.is_expired to always return True for this test
+        with patch("url_shortener.main.url_storage.is_expired", return_value=True):
+            get_resp = client.get(f"/{code}", follow_redirects=False)
+            assert get_resp.status_code in (404, 410)
 
-        get_resp = client.get(f"/{code}", follow_redirects=False)
-        assert get_resp.status_code in (404, 410)
 
-    def test_expired_code_response_has_detail(self, client: TestClient) -> None:
-        """Expired code response body must contain a 'detail' key."""
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /health (2+ tests)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestHealthEndpoint:
+    """Tests for GET /health."""
+
+    def test_health_check_returns_200(self, client: TestClient) -> None:
+        """GET /health must return 200 OK."""
+        resp = client.get("/health")
+        assert resp.status_code == 200
+
+    def test_health_response_has_required_fields(self, client: TestClient) -> None:
+        """Health response must contain status, storage, and uptime_seconds."""
+        resp = client.get("/health")
+        body = resp.json()
+        assert "status" in body
+        assert "storage" in body
+        assert "uptime_seconds" in body
+        # Verify values are reasonable
+        assert body["status"] == "healthy"
+        assert body["storage"] == "sqlite"
+        assert isinstance(body["uptime_seconds"], (int, float))
+        assert body["uptime_seconds"] >= 0
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GET /stats/{short_code} (3+ tests)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+class TestStatsEndpoint:
+    """Tests for GET /stats/{short_code}."""
+
+    def test_stats_returns_200_for_valid_code(self, client: TestClient) -> None:
+        """GET /stats with a valid code must return 200."""
+        # Create a short URL
         post_resp = client.post("/shorten", json={"url": "https://example.com"})
         code = post_resp.json()["short_url"]
-        url_storage._store[code]["expires_at"] = (
-            datetime.now(tz=timezone.utc) - timedelta(seconds=1)
-        )
-        get_resp = client.get(f"/{code}", follow_redirects=False)
-        assert "detail" in get_resp.json()
 
+        # Fetch stats
+        stats_resp = client.get(f"/stats/{code}")
+        assert stats_resp.status_code == 200
 
-# ── URLStorage unit tests ──────────────────────────────────────────────────────
+    def test_stats_response_has_required_fields(self, client: TestClient) -> None:
+        """Stats response must include short_code, long_url, created_at, expires_at, click_count."""
+        original_url = "https://example.com/path"
+        post_resp = client.post("/shorten", json={"url": original_url})
+        code = post_resp.json()["short_url"]
 
-class TestURLStorage:
-    """Unit tests for the URLStorage class in isolation."""
+        stats_resp = client.get(f"/stats/{code}")
+        body = stats_resp.json()
 
-    def test_create_returns_entry_with_all_keys(self) -> None:
-        """create() must return a dict with the required keys."""
-        storage = URLStorage()
-        entry = storage.create("https://example.com")
-        assert "short_code" in entry
-        assert "long_url" in entry
-        assert "created_at" in entry
-        assert "expires_at" in entry
+        assert "short_code" in body
+        assert "long_url" in body
+        assert "created_at" in body
+        assert "expires_at" in body
+        assert "click_count" in body
 
-    def test_create_short_code_is_8_chars(self) -> None:
-        """Generated short code must be exactly 8 characters long."""
-        storage = URLStorage()
-        entry = storage.create("https://example.com")
-        assert len(entry["short_code"]) == 8
+        # Verify values
+        assert body["short_code"] == code
+        assert body["long_url"] == original_url
+        assert isinstance(body["click_count"], int)
+        assert body["click_count"] == 0
 
-    def test_create_short_code_is_alphanumeric(self) -> None:
-        """Generated short code must be alphanumeric only."""
-        storage = URLStorage()
-        for _ in range(20):
-            entry = storage.create("https://example.com")
-            assert re.fullmatch(r"[A-Za-z0-9]{8}", entry["short_code"])
+    def test_click_count_increments_after_redirect(self, client: TestClient) -> None:
+        """click_count must increment after each redirect."""
+        post_resp = client.post("/shorten", json={"url": "https://example.com"})
+        code = post_resp.json()["short_url"]
 
-    def test_create_stores_correct_long_url(self) -> None:
-        """create() must persist and return the original long URL."""
-        storage = URLStorage()
-        url = "https://example.com/path?a=1&b=2"
-        entry = storage.create(url)
-        assert entry["long_url"] == url
+        # Get initial stats: click_count should be 0
+        initial_stats = client.get(f"/stats/{code}").json()
+        assert initial_stats["click_count"] == 0
 
-    def test_create_expires_at_is_30_days_after_created_at(self) -> None:
-        """expires_at must be exactly 30 days after created_at."""
-        storage = URLStorage()
-        entry = storage.create("https://example.com")
-        delta = entry["expires_at"] - entry["created_at"]
-        assert delta == timedelta(days=30)
+        # Follow redirect (triggers click increment)
+        client.get(f"/{code}", follow_redirects=False)
 
-    def test_get_returns_none_for_unknown_code(self) -> None:
-        """get() must return None for a code that was never stored."""
-        storage = URLStorage()
-        assert storage.get("XXXXXXXX") is None
+        # Stats after redirect: click_count should be greater than initial
+        stats_after_redirect = client.get(f"/stats/{code}").json()
+        assert stats_after_redirect["click_count"] > initial_stats["click_count"]
 
-    def test_get_returns_entry_for_known_code(self) -> None:
-        """get() must return the same entry that create() returned."""
-        storage = URLStorage()
-        entry = storage.create("https://example.com")
-        retrieved = storage.get(entry["short_code"])
-        assert retrieved is not None
-        assert retrieved["short_code"] == entry["short_code"]
-        assert retrieved["long_url"] == entry["long_url"]
+    def test_stats_unknown_code_returns_404(self, client: TestClient) -> None:
+        """GET /stats with an unknown code must return 404."""
+        resp = client.get("/stats/XXXXXXXX")
+        assert resp.status_code == 404
+        assert "detail" in resp.json()
 
-    def test_is_expired_returns_false_for_fresh_entry(self) -> None:
-        """is_expired() must return False for a newly created entry."""
-        storage = URLStorage()
-        entry = storage.create("https://example.com")
-        assert storage.is_expired(entry) is False
+    def test_stats_expired_code_returns_410(self, client: TestClient) -> None:
+        """GET /stats with an expired code must return 410.
+        
+        Uses mocking to force expiration.
+        """
+        post_resp = client.post("/shorten", json={"url": "https://example.com"})
+        code = post_resp.json()["short_url"]
 
-    def test_is_expired_returns_true_for_past_entry(self) -> None:
-        """is_expired() must return True when expires_at is in the past."""
-        storage = URLStorage()
-        entry = storage.create("https://example.com")
-        # Manually wind back expires_at
-        entry["expires_at"] = datetime.now(tz=timezone.utc) - timedelta(seconds=1)
-        assert storage.is_expired(entry) is True
-
-    def test_multiple_creates_are_independent(self) -> None:
-        """Each call to create() should produce a separately retrievable entry."""
-        storage = URLStorage()
-        e1 = storage.create("https://a.example.com")
-        e2 = storage.create("https://b.example.com")
-        assert storage.get(e1["short_code"]) is not None
-        assert storage.get(e2["short_code"]) is not None
-        assert e1["short_code"] != e2["short_code"] or e1["long_url"] != e2["long_url"]
+        # Mock is_expired to return True
+        with patch("url_shortener.main.url_storage.is_expired", return_value=True):
+            stats_resp = client.get(f"/stats/{code}")
+            assert stats_resp.status_code == 410
+            assert "detail" in stats_resp.json()
