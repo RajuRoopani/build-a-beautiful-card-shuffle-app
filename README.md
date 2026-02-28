@@ -1,241 +1,302 @@
-# URL Shortener API
+# Note-Taking REST API
 
-A production-grade URL shortener REST API built with FastAPI. This service allows you to shorten long URLs into compact short codes, redirect users via those short codes, and track click statistics for analytics.
+A simple yet powerful REST API for managing notes, built with **FastAPI**. Create, read, update, and delete notes through standard HTTP endpoints.
 
-## Features
+## Project Description
 
-- **Shorten URLs** — Convert long URLs into compact, memorable short codes (6-8 alphanumeric characters)
-- **Redirect via Short Codes** — Fast 301 redirects that preserve referrer and cache behavior
-- **Click Statistics Tracking** — Monitor the number of times each shortened URL has been accessed
-- **Input Validation** — Comprehensive validation for URL format, length, and uniqueness
+This Note-Taking REST API provides a complete CRUD (Create, Read, Update, Delete) interface for managing notes. Each note has:
+- A unique integer ID (auto-incremented)
+- A title and content
+- Creation and update timestamps
 
-## Tech Stack
+The API is built with **FastAPI** and uses **in-memory storage** for fast development and testing. Perfect for learning REST API design or as a foundation for more complex note-taking applications.
 
-- **Python** 3.11+
-- **FastAPI** — Modern, fast web framework for building REST APIs
-- **Uvicorn** — Lightning-fast ASGI server
-- **Pytest** — Comprehensive testing framework with fixtures and parametrization
+**Note:** All data is stored in memory and will be reset when the server restarts.
 
 ## Project Structure
 
 ```
-src/
-  url_shortener/
-    __init__.py           # Package initialization
-    main.py               # FastAPI app instance and route definitions
-    models.py             # Pydantic schemas for request/response
-    storage.py            # In-memory storage backend
-tests/
-  __init__.py
-  test_url_shortener.py   # Comprehensive test suite (happy path + error cases)
-requirements.txt          # Python dependencies
-README.md                 # This file
+note-taking-api/
+├── app/
+│   ├── __init__.py
+│   ├── main.py           # FastAPI application and endpoints
+│   └── models.py         # Pydantic models and in-memory storage
+├── tests/
+│   ├── __init__.py
+│   └── test_notes.py     # Comprehensive test suite
+├── requirements.txt      # Python dependencies
+└── README.md            # This file
 ```
 
-## Getting Started
+## Installation
 
-### Installation
+### Prerequisites
+- Python 3.8 or higher
+- pip (Python package manager)
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/RajuRoopani/url-shortener-api.git
-   cd url-shortener-api
-   ```
+### Install Dependencies
 
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. **Run the server:**
-   ```bash
-   uvicorn src.url_shortener.main:app --reload
-   ```
-
-   The API will be available at `http://localhost:8000`
-
-4. **View interactive API docs:**
-   - Swagger UI: `http://localhost:8000/docs`
-   - ReDoc: `http://localhost:8000/redoc`
-
-## API Endpoints
-
-### 1. Shorten a URL
-
-**Endpoint:** `POST /shorten`
-
-**Description:** Convert a long URL into a short, memorable code.
-
-**Request:**
-```json
-{
-  "original_url": "https://www.example.com/very/long/url/that/nobody/wants/to/share"
-}
-```
-
-**cURL Example:**
 ```bash
-curl -X POST http://localhost:8000/shorten \
-  -H "Content-Type: application/json" \
-  -d '{"original_url": "https://www.example.com/very/long/url"}'
+pip install -r requirements.txt
 ```
 
-**Success Response (201 Created):**
-```json
-{
-  "short_code": "a7b2c9",
-  "original_url": "https://www.example.com/very/long/url",
-  "short_url": "http://localhost:8000/a7b2c9",
-  "created_at": "2024-01-15T10:30:45.123456"
-}
-```
+This installs:
+- **fastapi** — Modern web framework for building APIs
+- **uvicorn** — ASGI server for running FastAPI
+- **pytest** — Testing framework
+- **httpx** — HTTP client for testing
 
-**Error Response (400 Bad Request):**
-```json
-{
-  "detail": "Invalid URL format or URL already shortened"
-}
-```
+## Running the API
 
----
+Start the development server with hot reload enabled:
 
-### 2. Redirect to Original URL
-
-**Endpoint:** `GET /{short_code}`
-
-**Description:** Redirect to the original URL and increment click counter.
-
-**cURL Example:**
 ```bash
-curl -i http://localhost:8000/a7b2c9
+uvicorn app.main:app --reload
 ```
 
-**Success Response (301 Moved Permanently):**
-```
-HTTP/1.1 301 Moved Permanently
-Location: https://www.example.com/very/long/url
-Cache-Control: public, max-age=86400
-```
+The API will be available at **http://localhost:8000**
 
-**Error Response (404 Not Found):**
-```json
-{
-  "detail": "Short code 'invalid' not found"
-}
-```
-
----
-
-### 3. Get Click Statistics
-
-**Endpoint:** `GET /stats/{short_code}`
-
-**Description:** Retrieve click count and metadata for a shortened URL.
-
-**cURL Example:**
-```bash
-curl http://localhost:8000/stats/a7b2c9
-```
-
-**Success Response (200 OK):**
-```json
-{
-  "short_code": "a7b2c9",
-  "original_url": "https://www.example.com/very/long/url",
-  "click_count": 42,
-  "created_at": "2024-01-15T10:30:45.123456",
-  "last_accessed": "2024-01-15T11:15:30.654321"
-}
-```
-
-**Error Response (404 Not Found):**
-```json
-{
-  "detail": "Short code 'invalid' not found"
-}
-```
+You can also view the interactive API documentation:
+- **Swagger UI:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
 
 ## Running Tests
 
-Run the full test suite with pytest:
+Run the complete test suite:
 
 ```bash
 pytest tests/ -v
 ```
 
-**Output Example:**
-```
-tests/test_url_shortener.py::test_shorten_valid_url PASSED
-tests/test_url_shortener.py::test_shorten_invalid_url FAILED
-tests/test_url_shortener.py::test_redirect_existing_code PASSED
-tests/test_url_shortener.py::test_redirect_nonexistent_code PASSED
-tests/test_url_shortener.py::test_stats_increments_click_count PASSED
-...
-```
+Run tests with coverage:
 
-**Run specific test file:**
 ```bash
-pytest tests/test_url_shortener.py -v
+pytest tests/ -v --cov=app
 ```
 
-**Run with coverage report:**
+## API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/notes` | Create a new note |
+| GET | `/notes` | List all notes |
+| GET | `/notes/{id}` | Get a single note by ID |
+| PUT | `/notes/{id}` | Update a note |
+| DELETE | `/notes/{id}` | Delete a note |
+
+## Example API Usage
+
+### 1. Create a Note
+
+**Request:**
 ```bash
-pytest tests/ --cov=src.url_shortener --cov-report=html
+curl -X POST http://localhost:8000/notes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "My First Note",
+    "content": "This is the content of my first note."
+  }'
 ```
 
-## Design Decisions
+**Response:**
+```json
+{
+  "id": 1,
+  "title": "My First Note",
+  "content": "This is the content of my first note.",
+  "created_at": "2024-01-15T10:30:45.123456+00:00",
+  "updated_at": "2024-01-15T10:30:45.123456+00:00"
+}
+```
+
+### 2. List All Notes
+
+**Request:**
+```bash
+curl -X GET http://localhost:8000/notes \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "title": "My First Note",
+    "content": "This is the content of my first note.",
+    "created_at": "2024-01-15T10:30:45.123456+00:00",
+    "updated_at": "2024-01-15T10:30:45.123456+00:00"
+  },
+  {
+    "id": 2,
+    "title": "Shopping List",
+    "content": "Milk, eggs, bread, cheese",
+    "created_at": "2024-01-15T10:35:20.654321+00:00",
+    "updated_at": "2024-01-15T10:35:20.654321+00:00"
+  }
+]
+```
+
+### 3. Get a Single Note
+
+**Request:**
+```bash
+curl -X GET http://localhost:8000/notes/1 \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "title": "My First Note",
+  "content": "This is the content of my first note.",
+  "created_at": "2024-01-15T10:30:45.123456+00:00",
+  "updated_at": "2024-01-15T10:30:45.123456+00:00"
+}
+```
+
+### 4. Update a Note
+
+**Request:**
+```bash
+curl -X PUT http://localhost:8000/notes/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "My Updated Note",
+    "content": "This is the updated content."
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "title": "My Updated Note",
+  "content": "This is the updated content.",
+  "created_at": "2024-01-15T10:30:45.123456+00:00",
+  "updated_at": "2024-01-15T10:40:15.987654+00:00"
+}
+```
+
+**Note:** You can update just the title or just the content by providing only one field:
+
+```bash
+curl -X PUT http://localhost:8000/notes/1 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "New Title Only"
+  }'
+```
+
+### 5. Delete a Note
+
+**Request:**
+```bash
+curl -X DELETE http://localhost:8000/notes/1 \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+```json
+{
+  "detail": "Note deleted"
+}
+```
+
+## Request/Response Examples
+
+### Creating a Note - Detailed Example
+
+**Command:**
+```bash
+curl -X POST http://localhost:8000/notes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Project Ideas",
+    "content": "1. Build a todo app\n2. Create a blog\n3. Learn FastAPI"
+  }'
+```
+
+**Formatted Request Body:**
+```json
+{
+  "title": "Project Ideas",
+  "content": "1. Build a todo app\n2. Create a blog\n3. Learn FastAPI"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": 3,
+  "title": "Project Ideas",
+  "content": "1. Build a todo app\n2. Create a blog\n3. Learn FastAPI",
+  "created_at": "2024-01-15T11:00:00.000000+00:00",
+  "updated_at": "2024-01-15T11:00:00.000000+00:00"
+}
+```
+
+### Error Handling
+
+If you request a note that doesn't exist, you'll receive a 404 error:
+
+**Request:**
+```bash
+curl -X GET http://localhost:8000/notes/999
+```
+
+**Response (404 Not Found):**
+```json
+{
+  "detail": "Note not found"
+}
+```
+
+## Important Notes
 
 ### In-Memory Storage
+- Data is stored **in memory only** and **will be lost when the server restarts**
+- This makes the API ideal for development, testing, and learning
+- For production use, consider integrating a database like PostgreSQL or SQLite
 
-- **Choice:** Dictionary-based in-memory storage
-- **Rationale:** Suitable for MVP and prototyping; no database setup required; fast read/write performance
-- **Trade-off:** Data is lost on server restart; not suitable for production with persistence requirements
-- **Future:** Can be upgraded to Redis or PostgreSQL without changing API contracts
+### Auto-Increment IDs
+- Note IDs are automatically generated as sequential integers
+- The first note will have ID 1, the second ID 2, etc.
+- IDs are never reused, even after deletion
 
-### Short Code Generation
+### Timestamps
+- All timestamps are in UTC timezone (timezone-aware)
+- Timestamps are automatically managed by the API
+- `created_at` never changes
+- `updated_at` updates whenever the note is modified
 
-- **Format:** Random alphanumeric strings (6-8 characters)
-- **Character Set:** `[a-z0-9]` (lowercase letters + digits)
-- **Algorithm:** Random selection from character pool with collision detection
-- **Collision Handling:** Retry with longer code if collision detected (extremely rare)
-- **Why not sequential:** Random codes are shorter for equivalent uniqueness and harder to enumerate
+## Development
 
-### 301 vs 302 Redirects
+### Code Organization
+- `app/main.py` — FastAPI application with all endpoint handlers
+- `app/models.py` — Pydantic request/response schemas and in-memory storage logic
+- `tests/test_notes.py` — Comprehensive test suite using pytest and TestClient
 
-- **Choice:** 301 (Moved Permanently)
-- **Rationale:** SEO-friendly; browsers cache result; appropriate for permanent shortened URLs
-- **Alternatives:** 302 (Found) for temporary redirects if needed in future
+### Testing with TestClient
+The test suite uses FastAPI's `TestClient` to simulate HTTP requests:
 
-### Click Tracking
+```python
+from fastapi.testclient import TestClient
+from app.main import app
 
-- **Implementation:** Counter incremented on each redirect request
-- **Scope:** Each short code has independent click count
-- **Accuracy:** Not guaranteed in concurrent scenarios (for strict accuracy, use database with atomic operations)
+client = TestClient(app)
+response = client.post("/notes", json={"title": "Test", "content": "Content"})
+assert response.status_code == 201
+```
 
-## Error Handling
+## Future Enhancements
 
-The API returns standard HTTP status codes:
-
-- **200 OK** — Request successful (GET /stats)
-- **201 Created** — URL successfully shortened (POST /shorten)
-- **301 Moved Permanently** — Redirect to original URL (GET /{short_code})
-- **400 Bad Request** — Invalid input (malformed URL, already shortened)
-- **404 Not Found** — Short code doesn't exist
-- **500 Internal Server Error** — Unexpected server error
-
-## Contributing
-
-1. Create a feature branch: `git checkout -b feature/your-feature`
-2. Write tests for new functionality
-3. Ensure all tests pass: `pytest tests/ -v`
-4. Commit and push: `git push origin feature/your-feature`
-5. Open a pull request
-
-## License
-
-MIT License — see LICENSE file for details
-
-## Support
-
-For issues, questions, or suggestions, please open an issue on GitHub:
-https://github.com/RajuRoopani/url-shortener-api/issues
+Possible extensions to this API:
+- Database integration (SQLite, PostgreSQL)
+- User authentication and authorization
+- Search and filtering capabilities
+- Note categories or tags
+- Rate limiting
+- Pagination for listing notes
+- Soft deletes (mark as deleted instead of removing)
