@@ -126,6 +126,32 @@
   var statShuffles  = document.getElementById('stat-shuffles');
   var deckCountEl   = document.getElementById('deck-count');
 
+  /**
+   * Visually-hidden live region for screen-reader announcements that don't
+   * map cleanly to visible UI elements (e.g. deck-depleted alert).
+   * Injected into the DOM once so JS can update its text at any time.
+   */
+  var ariaAnnouncer = (function () {
+    var el = document.createElement('div');
+    el.setAttribute('aria-live', 'polite');
+    el.setAttribute('aria-atomic', 'true');
+    el.setAttribute('id', 'aria-announcer');
+    // Visually hidden but present in the accessibility tree.
+    el.style.cssText = [
+      'position:absolute',
+      'width:1px',
+      'height:1px',
+      'padding:0',
+      'margin:-1px',
+      'overflow:hidden',
+      'clip:rect(0,0,0,0)',
+      'white-space:nowrap',
+      'border:0',
+    ].join(';');
+    document.body.appendChild(el);
+    return el;
+  }());
+
   // ─── 4. DECK RENDERING ─────────────────────────────────────────────────────
 
   /** Total cards in a standard deck. */
@@ -184,6 +210,13 @@
 
   // ─── 5. CONTROLS STATE ─────────────────────────────────────────────────────
 
+  /**
+   * Track whether the deck was depleted on the previous updateControls() call.
+   * Ensures the aria-live depletion announcement fires exactly once per depletion
+   * event, not on every subsequent call while the deck remains empty.
+   */
+  var _wasDepletedOnLastControl = false;
+
   /** Enable/disable buttons based on current state and deck exhaustion. */
   function updateControls() {
     var isIdle      = state.current === STATES.IDLE;
@@ -209,6 +242,16 @@
       if (btnIcon) btnIcon.textContent = '🎴';
       btnShuffle.childNodes[btnShuffle.childNodes.length - 1].textContent = ' Shuffle & Draw';
     }
+
+    // Announce deck-depleted transition once to screen readers via the injected
+    // aria-live region. Fires on the draw that hits 52; clears on reset so it
+    // can fire again on the next full depletion.
+    if (isDepleted && !_wasDepletedOnLastControl) {
+      ariaAnnouncer.textContent = 'All 52 cards drawn. Reset the deck to continue.';
+    } else if (!isDepleted && _wasDepletedOnLastControl) {
+      ariaAnnouncer.textContent = '';
+    }
+    _wasDepletedOnLastControl = isDepleted;
   }
 
   /**
@@ -386,11 +429,7 @@
 
   /**
    * Reset: hide the revealed card, rebuild an ordered 52-card deck,
-   * re-render the full pile, and clear the drawn counter.
-   *
-   * Intentional design choice: `stats.shuffles` is NOT reset — it
-   * reflects the total number of shuffles performed this session,
-   * which is more interesting to the user than per-deck count.
+   * re-render the full pile, and clear ALL stats (drawn + shuffles).
    */
   function resetApp() {
     if (state.current !== STATES.IDLE) return;
@@ -398,6 +437,7 @@
     resetRevealedCard();
     state.deck = buildDeck();
     state.stats.drawn = 0;
+    state.stats.shuffles = 0;  // reset ALL stats on a full deck reset
     renderDeck(DECK_SIZE);   // full 52-card pile
     updateStats();
     updateControls();
