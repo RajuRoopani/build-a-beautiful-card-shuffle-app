@@ -2,7 +2,21 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from app import app
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Literal
+
+
+# Import app by reading the app.py file to avoid package import conflict
+import sys
+import importlib.util
+from pathlib import Path
+
+app_path = Path(__file__).parent / "app.py"
+spec = importlib.util.spec_from_file_location("app_calculator", app_path)
+app_module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(app_module)
+app = app_module.app
 
 
 client = TestClient(app)
