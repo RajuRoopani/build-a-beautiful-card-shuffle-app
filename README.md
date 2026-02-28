@@ -1,459 +1,362 @@
-# URL Shortener API
+# Task Management Dashboard
 
-A high-performance URL shortening service built with FastAPI, scaled for 10,000 concurrent users. Convert long URLs into compact 8-character alphanumeric codes with persistent storage, rate limiting, caching, and automatic expiration management.
+A lightweight, browser-based task management application built with vanilla HTML, CSS, and JavaScript. No frameworks, no build tools, no backend server — just open `index.html` in your browser and start managing your tasks.
 
 ---
 
 ## Features
 
-- **Shorten URLs** — Convert long URLs to compact 8-character alphanumeric codes
-- **Persistent Storage** — SQLite database (via SQLAlchemy) for reliable URL persistence across restarts
-- **Automatic Redirection** — Redirect short codes to original URLs via 307 (Temporary Redirect) responses
-- **30-Day Retention** — URLs automatically expire after 30 days with hourly background cleanup
-- **Rate Limiting** — Built-in protection (100 req/min for POST /shorten, 100 req/min for stats, 200 req/min for redirects) via slowapi
-- **LRU Caching** — 10,000-entry in-memory cache for hot URL lookups
-- **Health Endpoint** — GET /health reports service status, uptime, and storage backend
-- **Input Validation** — Validates URL format and length before processing
-- **Docker Ready** — Multi-stage Dockerfile and docker-compose.yml included
-- **Async-First** — Built on FastAPI's async/await for efficient concurrency
+- **View Tasks** — See all your tasks in a scrollable sidebar list with status indicators
+- **Filter by Status** — Quick filter buttons to view All, To Do, In Progress, or Done tasks
+- **Task Details** — Click any task to view its full description, creation date, and current status
+- **Create Tasks** — Add new tasks via a modal form with title and description
+- **Change Status** — Update task status using a dropdown in the detail panel
+- **Status Badges** — Color-coded badges (🔴 todo, 🟡 in-progress, 🟢 done) for quick visual identification
+- **Responsive Layout** — Two-column desktop design that adapts to your screen size
+- **No Setup Required** — Works immediately in any modern browser; in-memory data resets on refresh
+
+---
+
+## Getting Started
+
+### Prerequisites
+- A modern web browser (Chrome, Firefox, Safari, or Edge)
+- That's it! No Node.js, no Python, no dependencies to install.
+
+### Installation
+Simply clone the repository and open `index.html` in your browser:
+
+```bash
+git clone https://github.com/RajuRoopani/build-a-task-management-dashboard.git
+cd build-a-task-management-dashboard
+open index.html
+```
+
+Or if you prefer to use a local web server:
+
+```bash
+# Python 3
+python -m http.server 8000
+
+# Node.js with http-server
+npx http-server
+
+# Then visit http://localhost:8000 in your browser
+```
+
+---
+
+## Usage
+
+### Quick Walkthrough
+
+1. **Open the App** — Launch `index.html` in your browser
+   - The dashboard loads with 3 sample tasks (one for each status)
+
+2. **Browse Tasks** — View tasks in the left sidebar
+   - Each task shows its title and a color-coded status badge
+
+3. **Filter Tasks** — Click the filter buttons at the top of the sidebar
+   - Select **All** to see everything
+   - Select **To Do**, **In Progress**, or **Done** to filter by status
+
+4. **View Details** — Click a task to see its full information
+   - The right panel displays the title, description, and creation date
+   - A dropdown allows you to change the status immediately
+
+5. **Create a Task** — Click the **+ New Task** button in the header
+   - Fill in the title (required) and description (optional)
+   - Click **Create** to add the task
+   - The new task appears in the sidebar and is automatically selected
+
+6. **Update Status** — Select a task and use the status dropdown in the detail panel
+   - Changes are reflected immediately in the sidebar badges
+
+### Important Notes
+
+- **In-Memory Storage** — All tasks live in your browser's memory
+- **No Persistence** — Refreshing the page resets to the original 3 sample tasks
+- **No Sync** — Tasks are not saved to a server or localStorage
+- This is perfect for quick task planning sessions or demonstrating the UI
 
 ---
 
 ## Project Structure
 
 ```
-url_shortener/
-├── __init__.py
-├── main.py             # FastAPI application & endpoints
-├── models.py           # Pydantic request/response schemas
-├── database.py         # SQLAlchemy async engine & session factory
-├── db_models.py        # ShortURL ORM model
-├── storage.py          # URLStorage with LRU cache
-├── config.py           # Application settings from environment variables
-└── tests/
-    ├── __init__.py
-    ├── conftest.py
-    └── test_url_shortener.py
+.
+├── index.html          — Semantic HTML markup with dialog for the modal form
+├── style.css           — CSS Grid layout, Flexbox styling, and color-coded badges
+├── app.js              — Complete application logic with Revealing Module Pattern
+└── README.md           — This file
 ```
+
+### File Descriptions
+
+| File | Purpose |
+|------|---------|
+| **index.html** | Declares the page structure, links CSS/JS, and provides semantic DOM elements for the sidebar, detail panel, and modal |
+| **style.css** | All visual styling including CSS Grid (2-column layout), Flexbox (internal arrangement), color schemes, and responsive design |
+| **app.js** | Application logic: data store, task management (add/update/filter), rendering functions, and event delegation |
+| **README.md** | Setup instructions and feature overview |
 
 ---
 
-## Installation
+## Technical Details
 
-### Option 1: Local (pip)
+### Architecture
 
-```bash
-pip install -r requirements.txt
+The application uses the **Revealing Module Pattern** — a clean, ES5-compatible approach that avoids global namespace pollution without requiring a build step.
+
+```
+app.js Structure:
+├── STORE
+│   ├── Task data array (3 seed tasks)
+│   ├── Active filter state
+│   └── Active task selection
+│
+├── SIDEBAR
+│   └── Render task list with current filter applied
+│
+├── DETAIL PANEL
+│   └── Render selected task or empty state
+│
+├── MODAL
+│   ├── Form input validation
+│   └── Task creation handler
+│
+├── FILTERS
+│   └── Filter button state management
+│
+├── EVENT WIRING
+│   └── Single delegated click handler for all user interactions
+│
+└── INIT
+    └── Bootstrap rendering and event listeners
 ```
 
-**Core Dependencies:**
-- FastAPI 0.104+
-- Uvicorn 0.24+
-- Pydantic 2.0+
-- SQLAlchemy 2.0+ with async support
-- aiosqlite (for SQLite async driver)
-- slowapi (for rate limiting)
-- Pytest 7.0+ (for testing)
+### Layout Strategy
 
-### Option 2: Docker (Recommended for Production)
+- **CSS Grid** — Two-column layout (fixed sidebar + fluid main area) fills the entire viewport
+- **Flexbox** — Used within each column for internal arrangement
+- **Native `<dialog>`** — Modern HTML modal element (no jQuery, no manual z-index management)
+- **Mobile-Friendly** — Sidebar takes priority on smaller screens
 
-```bash
-docker-compose up
+```
+┌─────────────────────────────────────────┐
+│  Header: Task Dashboard  [+ New Task]  │
+├──────────────────┬──────────────────────┤
+│  [Filters]       │                      │
+│  ─────────────── │  Task Details        │
+│  □ Task A  todo  │  (title, status,     │
+│  □ Task B  prog  │   description)       │
+│  □ Task C  done  │                      │
+│                  │                      │
+└──────────────────┴──────────────────────┘
+┌─────────────────────────────────────────┐
+│  Modal (centered overlay, when open)   │
+└─────────────────────────────────────────┘
 ```
 
-This builds and runs the application in a containerized environment with persistent SQLite volume.
+### Data Model
 
----
+Each task is a plain JavaScript object:
 
-## Running the App
-
-### Local Development
-
-Start the FastAPI development server:
-
-```bash
-uvicorn url_shortener.main:app --reload
-```
-
-The API will be available at `http://localhost:8000`
-
-**Interactive API Docs:** `http://localhost:8000/docs` (Swagger UI)
-
-### Production (Docker)
-
-```bash
-docker-compose up -d
-```
-
-The service will be available at `http://localhost:8000` with automatic restarts and health checks enabled.
-
----
-
-## API Endpoints
-
-### POST /shorten
-Shorten a long URL.
-
-**Rate Limit:** 100 requests/minute per IP address
-
-**Request:**
-```bash
-curl -X POST "http://localhost:8000/shorten" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://www.example.com/very/long/path/to/resource"}'
-```
-
-**Response (201 Created):**
-```json
+```js
 {
-  "short_url": "a7b2k9m1",
-  "long_url": "https://www.example.com/very/long/path/to/resource",
-  "expires_at": "2026-02-15T10:30:00+00:00"
+  id:          String,        // Unique identifier (e.g. "seed-1")
+  title:       String,        // Task name (max 100 chars)
+  description: String,        // Details (optional)
+  status:      "todo" | "in-progress" | "done",
+  createdDate: String         // ISO 8601 timestamp
 }
 ```
 
-**Errors:**
-- `400 Bad Request` — Invalid or missing URL
-- `429 Too Many Requests` — Rate limit exceeded
-- `422 Unprocessable Entity` — Invalid request format
+### Browser Support
+
+- ✅ Chrome 37+
+- ✅ Firefox 98+
+- ✅ Safari 15.4+
+- ✅ Edge 79+
+
+(Requires `<dialog>` element support, available in all modern browsers)
+
+### Performance
+
+- **Rendering** — Full re-render of each section (sidebar, detail panel) on state changes
+- **Data Scale** — Optimized for ~50–200 tasks; no virtual scrolling needed at this scale
+- **Memory** — All state held in a single JS array; no localStorage or API calls
+- **Load Time** — Instant; all code loads synchronously in ~10ms
 
 ---
 
-### GET /stats/{short_code}
-Get statistics for a short URL.
+## Seed Data
 
-**Rate Limit:** 100 requests/minute per IP address
+The application comes with 3 sample tasks to demonstrate the interface:
 
-**Request:**
-```bash
-curl "http://localhost:8000/stats/a7b2k9m1"
-```
+```js
+1. "Set up project repository" — Status: Done
+   Description: Initialize the GitHub repo, add README and folder structure.
+   Created: 2025-01-10T09:00:00.000Z
 
-**Response (200 OK):**
-```json
-{
-  "short_code": "a7b2k9m1",
-  "long_url": "https://www.example.com/very/long/path/to/resource",
-  "created_at": "2026-01-16T10:30:00+00:00",
-  "expires_at": "2026-02-15T10:30:00+00:00",
-  "click_count": 42
-}
-```
+2. "Design wireframes" — Status: In Progress
+   Description: Create low-fidelity wireframes for the dashboard layout.
+   Created: 2025-01-12T11:30:00.000Z
 
-**Errors:**
-- `404 Not Found` — Short code not found
-- `410 Gone` — Short code has expired
-
----
-
-### GET /{short_code}
-Redirect to the original URL.
-
-**Rate Limit:** 200 requests/minute per IP address
-
-**Request:**
-```bash
-curl -L "http://localhost:8000/a7b2k9m1"
-```
-
-**Response (307 Temporary Redirect):**
-- Redirects to the original URL if found and not expired
-- Returns `Location` header with the original URL
-
-**Errors:**
-- `404 Not Found` — Short code not found
-- `410 Gone` — Short code has expired
-- `429 Too Many Requests` — Rate limit exceeded
-
----
-
-### GET /health
-Health check endpoint.
-
-**Request:**
-```bash
-curl "http://localhost:8000/health"
-```
-
-**Response (200 OK):**
-```json
-{
-  "status": "healthy",
-  "storage": "sqlite",
-  "uptime_seconds": 1234.56
-}
+3. "Write unit tests" — Status: To Do
+   Description: Add tests for task CRUD operations and filter logic.
+   Created: 2025-01-14T08:00:00.000Z
 ```
 
 ---
 
-## Tech Stack
+## Accessibility
 
-| Component | Technology |
-|-----------|---------------|
-| Framework | **FastAPI** 0.104+ |
-| HTTP Server | **Uvicorn** 0.24+ (with Gunicorn in production) |
-| Async Runtime | **Anyio** (via FastAPI/Starlette) |
-| Database | **SQLite** with **SQLAlchemy** 2.0+ async ORM |
-| Database Driver | **aiosqlite** (async SQLite adapter) |
-| Rate Limiting | **slowapi** |
-| Data Validation | **Pydantic** 2.0+ |
-| Testing | **Pytest** 7.0+ |
-| Container | **Docker** (multi-stage build) |
-| Orchestration | **Docker Compose** 3.9+ |
-| Python | 3.11+ |
+- **Semantic HTML** — Uses `<aside>`, `<main>`, `<dialog>`, and proper heading hierarchy
+- **Focus Management** — Modal traps focus inside the dialog element
+- **Screen Readers** — Active task indicated with `aria-selected`, badges use `aria-label`
+- **Keyboard Navigation** — All controls are keyboard-accessible via native focus behavior
 
 ---
 
-## Architecture
+## Customization
 
-### Concurrency for 10K Users
-- **Async/Await**: FastAPI and SQLAlchemy async mode handle concurrent requests without thread overhead
-- **Connection Pooling**: SQLAlchemy's async engine includes a built-in pool (~5-10 concurrent DB connections)
-- **Rate Limiting**: slowapi prevents any single IP from overwhelming the service
+### Changing the Sample Data
 
-### Persistence
-- **SQLite with SQLAlchemy**: All URLs stored in a ACID-compliant database file (`url_shortener.db`)
-- **Configurable Backend**: Swap the `DATABASE_URL` environment variable to PostgreSQL/MySQL without code changes
+Edit the `tasks` array at the top of `app.js`:
 
-### Performance Optimization
-- **LRU Cache**: 10,000-entry in-memory cache for frequently accessed short codes (O(1) lookup)
-- **Indexed Queries**: Database indexes on `short_code` and `expires_at` for efficient lookups and cleanup
-- **Lazy Expiration**: URLs checked on access; background cleanup removes expired rows hourly
-- **Connection Reuse**: HTTP connection keep-alive (5 seconds) and persistent DB pool reduce overhead
-
-### Background Tasks
-- **Cleanup Job**: Runs every hour to purge expired URLs from the database
-- **Error Resilience**: Cleanup failures are logged but never crash the app
-
----
-
-## Running Tests
-
-Execute the test suite:
-
-```bash
-pytest url_shortener/tests/ -v
+```js
+const tasks = [
+  {
+    id: "your-id-1",
+    title: "Your Task Title",
+    description: "Your description",
+    status: "todo",
+    createdDate: new Date().toISOString(),
+  },
+  // ... more tasks
+];
 ```
 
-**Test Coverage:**
-- ✅ Valid URL shortening
-- ✅ Invalid/malformed URL rejection
-- ✅ Short code generation and uniqueness
-- ✅ URL redirect functionality
-- ✅ Expiration handling (lazy checks and background cleanup)
-- ✅ Rate limiting enforcement
-- ✅ Health check endpoint
-- ✅ Edge cases (expired URLs, missing codes, etc.)
+### Styling
 
-**Example output:**
-```
-url_shortener/tests/test_url_shortener.py::test_shorten_valid_url PASSED
-url_shortener/tests/test_url_shortener.py::test_shorten_invalid_url PASSED
-url_shortener/tests/test_url_shortener.py::test_redirect_valid_code PASSED
-url_shortener/tests/test_url_shortener.py::test_redirect_expired_code PASSED
-url_shortener/tests/test_url_shortener.py::test_health_check PASSED
-...
+All styles are in `style.css`. Key customization points:
+
+- **Color scheme** — Look for CSS variables or `.status-todo`, `.status-in-progress`, `.status-done` classes
+- **Layout dimensions** — Sidebar width and header height are defined in the grid template
+- **Fonts** — Set in the `body` rule using system fonts
+
+### Adding Persistence
+
+To save tasks to localStorage, modify `app.js`:
+
+```js
+// After adding/updating a task:
+localStorage.setItem('dashboard-tasks', JSON.stringify(tasks));
+
+// On app init, load saved data:
+const saved = localStorage.getItem('dashboard-tasks');
+if (saved) tasks = JSON.parse(saved);
 ```
 
 ---
 
-## Implementation Details
+## Limitations & Future Ideas
 
-### Short Code Generation
-- **Format:** 8-character alphanumeric codes (0-9, a-z, A-Z)
-- **Encoding:** Base62 alphabet (62 possible characters per position)
-- **Collision Resistance:** ~62^8 possible codes (approximately 218 trillion)
-- **Collision Handling:** Automatic retry on the rare collision event
+### Current Limitations
 
-### Expiration Strategy
-- **Retention Period:** 30 days from creation
-- **Lazy Expiration:** Checked on each redirect request (O(1) timestamp comparison)
-- **Background Cleanup:** Hourly job deletes expired records from the database
-- **Storage:** Expiration timestamp indexed in the database for efficient cleanup queries
+- **In-Memory Only** — Data resets on refresh
+- **No Sync** — Single-user, single-device
+- **No Edit** — Can only view and change status, not modify title/description
+- **Limited Validation** — Basic checks on form input
 
-### Input Validation
-- URL must be a valid HTTP/HTTPS URL
-- Maximum URL length: 2,048 characters
-- Rejects relative URLs and non-HTTP(S) schemes
-- Validation enforced by Pydantic; errors return HTTP 400
+### Ideas for Enhancement
 
-### Caching Strategy
-- **LRU Cache Size:** 10,000 entries
-- **Cache Key:** Composite of all URL fields (short_code, long_url, timestamps)
-- **Invalidation:** Natural eviction; stale entries caught by is_expired() check
-- **Trade-off:** Cache favors speed; up to 1 hour of stale hits acceptable (cleanup interval)
-
----
-
-## Performance Characteristics
-
-| Metric | Value | Notes |
-|--------|-------|-------|
-| Shorten Time | O(1) | Generate code + insert to DB (no lookups) |
-| Redirect Time | O(1) | LRU cache + timestamp check |
-| Concurrent Users | ~10,000 | FastAPI async + SQLAlchemy async pool |
-| Throughput | 1000+ req/sec | On standard 2-core hardware |
-| Storage | SQLite | Persistent, ACID-compliant, configurable to PostgreSQL |
-| Cache Hit Rate | ~80-90% | Hot URLs cached; cold URLs queried from DB |
-
----
-
-## Example Usage
-
-### Python Client
-```python
-import requests
-
-# Shorten a URL
-response = requests.post(
-    "http://localhost:8000/shorten",
-    json={"url": "https://github.com/RajuRoopani/build-url-shorterner-app-from-scratch"}
-)
-data = response.json()
-short_code = data["short_url"]
-print(f"Short URL: http://localhost:8000/{short_code}")
-
-# Redirect using short code (will redirect)
-redirect = requests.get(
-    f"http://localhost:8000/{short_code}",
-    allow_redirects=False
-)
-print(f"Redirect Location: {redirect.headers['location']}")
-```
-
-### cURL Examples
-```bash
-# Shorten a URL
-curl -X POST "http://localhost:8000/shorten" \
-  -H "Content-Type: application/json" \
-  -d '{"url": "https://example.com/path"}'
-
-# Follow the redirect
-curl -L "http://localhost:8000/abc12345"
-
-# Check service health
-curl "http://localhost:8000/health"
-```
+- [ ] LocalStorage persistence
+- [ ] Edit existing tasks (title/description)
+- [ ] Drag-and-drop to reorder tasks
+- [ ] Search/filter by text
+- [ ] Dark mode toggle
+- [ ] Subtasks or checklists
+- [ ] Tags/labels
+- [ ] Due dates with notifications
+- [ ] Export tasks as CSV or JSON
 
 ---
 
 ## Development
 
-### Code Structure
-- **main.py** — FastAPI app, lifespan context manager, endpoints, rate limiting
-- **models.py** — Pydantic request/response schemas
-- **database.py** — SQLAlchemy async engine, session factory, Base class
-- **db_models.py** — ShortURL ORM model with indexes
-- **storage.py** — URLStorage class with LRU cache and CRUD operations
-- **tests/test_url_shortener.py** — Comprehensive test suite
+### Running Tests
 
-### Testing Strategy
-- Unit tests for storage operations (create, get, is_expired)
-- Integration tests for API endpoints (POST /shorten, GET /{code}, GET /health)
-- Rate limiting tests
-- Edge case coverage (expired URLs, invalid inputs, collisions)
-- All tests use async test client (`TestClient` from httpx)
-- Database: in-memory SQLite via `sqlite:///:memory:` connection URL
+Currently, the app includes no formal test suite. To add tests, create a `tests/` directory with Jasmine, Jest, or Vitest and test the exposed functions from `app.js`.
 
-### Adding Features
-1. Add Pydantic models in `models.py` if needed
-2. Implement logic in `storage.py` or add new storage methods
-3. Create endpoints in `main.py` with appropriate decorators (@limiter, @app.get, etc.)
-4. Write tests in `tests/test_url_shortener.py`
-5. Run `pytest url_shortener/tests/ -v` to verify
-6. Commit to `junior_dev_2` branch
+### Code Style
+
+- **No Linter Required** — Vanilla JS with clear conventions
+- **Comments** — Inline comments explain complex logic
+- **Naming** — Function names are descriptive (e.g., `renderSidebar()`, `selectTask()`)
+- **No Build Step** — Single `<script>` tag in HTML loads everything
+
+### Making Changes
+
+1. Edit HTML markup in `index.html`
+2. Update styles in `style.css`
+3. Implement logic in `app.js`
+4. Open `index.html` in your browser to test
+5. Use browser DevTools (F12) to debug
 
 ---
 
-## Error Handling
+## Troubleshooting
 
-| Status | Description |
-|--------|-------------|
-| `201 Created` | Successfully shortened URL |
-| `307 Temporary Redirect` | Redirecting to original URL |
-| `400 Bad Request` | Invalid or malformed URL |
-| `404 Not Found` | Short code not found |
-| `410 Gone` | Short code has expired |
-| `422 Unprocessable Entity` | Invalid request schema |
-| `429 Too Many Requests` | Rate limit exceeded |
-| `500 Internal Server Error` | Unexpected server error |
+### Tasks Are Disappearing After Refresh
+**Expected behavior!** This app uses in-memory storage only. To persist data, see "Adding Persistence" in the Customization section.
 
----
+### Modal Won't Close
+Make sure your browser supports the native `<dialog>` element. Check your browser version (Chrome 37+, Firefox 98+, Safari 15.4+, Edge 79+).
 
-## Database Migrations & Configuration
+### Styles Not Applying
+1. Ensure `style.css` is in the same directory as `index.html`
+2. Clear your browser cache (Ctrl+Shift+Delete or Cmd+Shift+Delete)
+3. Check the browser console for CSS load errors
 
-### Switching to PostgreSQL
-No code changes needed—just set the `DATABASE_URL` environment variable:
-
-```bash
-export DATABASE_URL="postgresql+asyncpg://user:password@localhost/url_shortener"
-python -m uvicorn url_shortener.main:app
-```
-
-Or in docker-compose.yml:
-
-```yaml
-environment:
-  DATABASE_URL: "postgresql+asyncpg://user:password@postgres/url_shortener"
-```
-
-### Creating the Database Schema
-The application automatically creates tables on startup via `init_db()` in the lifespan handler. No manual migrations needed for SQLite.
+### JavaScript Errors in Console
+1. Check that `app.js` is in the same directory as `index.html`
+2. Open DevTools (F12) and review the console for specific errors
+3. Ensure you're using a modern browser (see Browser Support above)
 
 ---
 
-## Deployment
+## Browser DevTools Tips
 
-### Docker (Recommended)
-```bash
-docker-compose up -d
-```
-
-**What Happens:**
-1. Multi-stage build creates a minimal runtime image
-2. Non-root user (`appuser`) runs the app for security
-3. Gunicorn + UvicornWorker handles 4 concurrent workers
-4. SQLite database persisted to a Docker volume
-5. Health checks enabled with 30-second intervals
-6. Auto-restart on failure
-
-### Manual Uvicorn
-```bash
-uvicorn url_shortener.main:app --host 0.0.0.0 --port 8000
-```
-
-### With Gunicorn (Production)
-```bash
-gunicorn url_shortener.main:app \
-  --worker-class uvicorn.workers.UvicornWorker \
-  --workers 4 \
-  --bind 0.0.0.0:8000 \
-  --timeout 120 \
-  --access-logfile - \
-  --error-logfile -
-```
-
----
-
-## Future Enhancements
-
-- [ ] Custom short codes (user-defined aliases)
-- [ ] URL preview before redirect (og:title, og:image)
-- [ ] QR code generation for short URLs
-- [ ] API authentication with JWT tokens
-- [ ] Link expiration customization per request
-- [ ] Redirect chain detection (prevent redirect loops)
-- [ ] Metrics/monitoring integration (Prometheus, Datadog)
-- [ ] Admin dashboard for URL management
+- **Console** — Errors and `console.log()` output
+- **Elements/Inspector** — Inspect the DOM structure
+- **Network** — Verify CSS and JS files load correctly
+- **Performance** — Profile rendering if the app feels slow
 
 ---
 
 ## Contributing
 
-Built by [Team Claw](https://github.com/RajuRoopani) — an autonomous multi-agent AI development team.
+Improvements and suggestions welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Make your changes
+4. Test thoroughly in a browser
+5. Commit and push
+6. Open a pull request with a clear description
 
 ---
 
 ## License
 
-MIT License - See LICENSE file for details
+MIT License — Feel free to use, modify, and distribute this project.
+
+---
+
+## Credits
+
+Built by [Team Claw](https://github.com/RajuRoopani) — an autonomous multi-agent AI development team.
+
+For the full architecture and design documentation, see [`docs/task-dashboard-design.md`](docs/task-dashboard-design.md).
