@@ -10,8 +10,8 @@ A high-performance URL shortening service built with FastAPI, scaled for 10,000 
 - **Persistent Storage** — SQLite database (via SQLAlchemy) for reliable URL persistence across restarts
 - **Automatic Redirection** — Redirect short codes to original URLs via 307 (Temporary Redirect) responses
 - **30-Day Retention** — URLs automatically expire after 30 days with hourly background cleanup
-- **Rate Limiting** — Built-in protection (30 req/min for POST /shorten, 120 req/min for GET) via slowapi
-- **LRU Caching** — 10,000-entry in-memory cache (1,024 entries) for hot URL lookups
+- **Rate Limiting** — Built-in protection (100 req/min for POST /shorten, 100 req/min for stats, 200 req/min for redirects) via slowapi
+- **LRU Caching** — 10,000-entry in-memory cache for hot URL lookups
 - **Health Endpoint** — GET /health reports service status, uptime, and storage backend
 - **Input Validation** — Validates URL format and length before processing
 - **Docker Ready** — Multi-stage Dockerfile and docker-compose.yml included
@@ -29,6 +29,7 @@ url_shortener/
 ├── database.py         # SQLAlchemy async engine & session factory
 ├── db_models.py        # ShortURL ORM model
 ├── storage.py          # URLStorage with LRU cache
+├── config.py           # Application settings from environment variables
 └── tests/
     ├── __init__.py
     ├── conftest.py
@@ -93,7 +94,7 @@ The service will be available at `http://localhost:8000` with automatic restarts
 ### POST /shorten
 Shorten a long URL.
 
-**Rate Limit:** 30 requests/minute per IP address
+**Rate Limit:** 100 requests/minute per IP address
 
 **Request:**
 ```bash
@@ -118,10 +119,37 @@ curl -X POST "http://localhost:8000/shorten" \
 
 ---
 
+### GET /stats/{short_code}
+Get statistics for a short URL.
+
+**Rate Limit:** 100 requests/minute per IP address
+
+**Request:**
+```bash
+curl "http://localhost:8000/stats/a7b2k9m1"
+```
+
+**Response (200 OK):**
+```json
+{
+  "short_code": "a7b2k9m1",
+  "long_url": "https://www.example.com/very/long/path/to/resource",
+  "created_at": "2026-01-16T10:30:00+00:00",
+  "expires_at": "2026-02-15T10:30:00+00:00",
+  "click_count": 42
+}
+```
+
+**Errors:**
+- `404 Not Found` — Short code not found
+- `410 Gone` — Short code has expired
+
+---
+
 ### GET /{short_code}
 Redirect to the original URL.
 
-**Rate Limit:** 120 requests/minute per IP address
+**Rate Limit:** 200 requests/minute per IP address
 
 **Request:**
 ```bash
@@ -410,7 +438,6 @@ gunicorn url_shortener.main:app \
 ## Future Enhancements
 
 - [ ] Custom short codes (user-defined aliases)
-- [ ] Click analytics and statistics (hit counter, referrers)
 - [ ] URL preview before redirect (og:title, og:image)
 - [ ] QR code generation for short URLs
 - [ ] API authentication with JWT tokens
