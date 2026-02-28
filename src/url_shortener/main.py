@@ -1,9 +1,15 @@
 """FastAPI application for the URL Shortener API.
 
 Endpoints:
-    POST /shorten           — Create a short URL
-    GET  /{short_code}      — Redirect to original URL (301)
-    GET  /stats/{short_code} — Return click statistics
+    POST /shorten            — Create a short URL (201)
+    GET  /{short_code}       — Redirect to original URL (301)
+    GET  /stats/{short_code} — Return click statistics (200)
+    GET  /health             — Service health check (200)
+
+Scaling features:
+    - Token-bucket rate limiting (100 req/60 s per IP) via RateLimitMiddleware
+    - LRU-cached redirect lookups in storage layer (top-1024 hot codes)
+    - Click tracking on every redirect
 """
 
 import random
@@ -19,8 +25,11 @@ from src.url_shortener.rate_limiter import RateLimitMiddleware
 
 app = FastAPI(
     title="URL Shortener API",
-    description="A production-grade URL Shortener with click statistics.",
-    version="1.0.0",
+    description=(
+        "A production-grade URL Shortener with click statistics, "
+        "rate limiting, and LRU caching — designed for 10k concurrent users."
+    ),
+    version="2.0.0",
 )
 
 # ---------------------------------------------------------------------------
@@ -31,6 +40,10 @@ app.add_middleware(RateLimitMiddleware, rate_limit=100, window_seconds=60.0)
 _SHORT_CODE_LENGTH: int = 7
 _ALPHABET: str = string.ascii_letters + string.digits
 
+
+# ---------------------------------------------------------------------------
+# Exception handlers
+# ---------------------------------------------------------------------------
 
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
@@ -47,6 +60,10 @@ async def validation_exception_handler(
             return JSONResponse(status_code=400, content={"detail": "Invalid URL"})
     return JSONResponse(status_code=422, content={"detail": exc.errors()})
 
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 def _generate_short_code() -> str:
     """Generate a unique 7-character alphanumeric short code.
@@ -78,6 +95,26 @@ def _build_short_url(request: Request, short_code: str) -> str:
     return f"{base_url}/{short_code}"
 
 
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
+@app.get(
+    "/health",
+    summary="Health check",
+    responses={200: {"description": "Service is healthy"}},
+)
+def health_check() -> dict[str, str]:
+    """Return service health status.
+
+    Used by load balancers and container orchestrators to verify liveness.
+
+    Returns:
+        A dict with ``status: ok`` and ``service`` name.
+    """
+    return {"status": "ok", "service": "url-shortener"}
+
+
 @app.post(
     "/shorten",
     response_model=ShortenResponse,
@@ -101,8 +138,6 @@ def shorten_url(body: ShortenRequest, request: Request) -> ShortenResponse:
     Raises:
         HTTPException 400: If the URL fails validation.
     """
-    # Pydantic validation runs on body instantiation; if we reach here the
-    # URL is already validated. Wrap just in case of edge cases.
     try:
         original_url: str = str(body.url)
     except Exception as exc:
@@ -168,7 +203,8 @@ def get_stats(short_code: str) -> StatsResponse:
 def redirect_to_url(short_code: str) -> RedirectResponse:
     """Look up a short code and issue a 301 redirect to the original URL.
 
-    Also increments the click count for the short code.
+    Uses the LRU cache in the storage layer for the hot-path URL lookup,
+    then increments the click count in the authoritative store.
 
     Args:
         short_code: The short code to resolve.
@@ -179,9 +215,10 @@ def redirect_to_url(short_code: str) -> RedirectResponse:
     Raises:
         HTTPException 404: If the short code is not found.
     """
-    record = storage.get_url(short_code)
-    if record is None:
+    # Use cached lookup for the redirect hot-path.
+    original_url = storage.get_original_url_cached(short_code)
+    if original_url is None:
         raise HTTPException(status_code=404, detail="Short code not found")
 
     storage.increment_clicks(short_code)
-    return RedirectResponse(url=record["original_url"], status_code=301)
+    return RedirectResponse(url=original_url, status_code=301)

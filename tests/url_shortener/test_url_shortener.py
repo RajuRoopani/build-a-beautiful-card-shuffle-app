@@ -18,6 +18,24 @@ from src.url_shortener import storage
 
 
 # ---------------------------------------------------------------------------
+# GET /health
+# ---------------------------------------------------------------------------
+
+class TestHealthEndpoint:
+    def test_health_returns_200(self, client: TestClient) -> None:
+        response = client.get("/health")
+        assert response.status_code == 200
+
+    def test_health_response_has_status_ok(self, client: TestClient) -> None:
+        response = client.get("/health")
+        assert response.json()["status"] == "ok"
+
+    def test_health_response_has_service_field(self, client: TestClient) -> None:
+        response = client.get("/health")
+        assert "service" in response.json()
+
+
+# ---------------------------------------------------------------------------
 # POST /shorten
 # ---------------------------------------------------------------------------
 
@@ -250,3 +268,19 @@ class TestStorage:
     def test_created_at_is_timezone_aware(self) -> None:
         record = storage.save_url("abc1234", "https://example.com")
         assert record["created_at"].tzinfo is not None
+
+    def test_get_original_url_cached_returns_url(self) -> None:
+        storage.save_url("cached1", "https://cached.example.com")
+        result = storage.get_original_url_cached("cached1")
+        assert result == "https://cached.example.com"
+
+    def test_get_original_url_cached_returns_none_for_missing(self) -> None:
+        result = storage.get_original_url_cached("doesnotexist")
+        assert result is None
+
+    def test_get_original_url_cached_consistent_with_get_url(self) -> None:
+        storage.save_url("abc1234", "https://example.com")
+        cached = storage.get_original_url_cached("abc1234")
+        record = storage.get_url("abc1234")
+        assert record is not None
+        assert cached == record["original_url"]
