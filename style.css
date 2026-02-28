@@ -1,403 +1,661 @@
-/* ============================================================
-   Task Management Dashboard — Stylesheet
-   Layout: CSS Grid body (header + content row)
-           .app-content: 280px sidebar | fluid main
-   ============================================================ */
+/* =============================================================
+   CARD SHUFFLE APP — Casino Theme
+   Full replacement of Task Dashboard CSS
+   ============================================================= */
 
-/* ── Reset & Base ─────────────────────────────────────────── */
+/* ─── CSS CUSTOM PROPERTIES ─────────────────────────────────── */
+:root {
+  /* Colors */
+  --color-felt:              #1B4332;
+  --color-felt-light:        #2D6A4F;
+  --color-felt-dark:         #0D2B1E;
+  --color-gold:              #F0C040;
+  --color-gold-dark:         #C9982A;
+  --color-card-white:        #FAFAF5;
+  --color-card-red:          #C0392B;
+  --color-card-black:        #1a1a2e;
+  --color-card-back-bg:      #1a1a6e;
+  --color-card-back-pattern: #8B0000;
+  --color-text-primary:      #F5F0E8;
+  --color-text-muted:        #A8B5A0;
+
+  /* Card sizes — desktop */
+  --card-reveal-w: 160px;
+  --card-reveal-h: 224px;
+  --card-deck-w:   100px;
+  --card-deck-h:   140px;
+
+  /* Spacing */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+}
+
+/* ─── RESET & BASE ───────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html {
+html, body {
   height: 100%;
 }
 
 body {
-  /* System font stack */
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
-               Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
-  font-size: 14px;
-  color: #2c3e50;
+  background-color: var(--color-felt);
+  color: var(--color-text-primary);
+  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
   line-height: 1.5;
-
-  /* Full-viewport, no page scroll */
-  min-width: 1024px;
-  height: 100vh;
-  overflow: hidden;
-
-  /* Grid: auto-height header + remaining 1fr content row */
-  display: grid;
-  grid-template-rows: auto 1fr;
-  grid-template-columns: 1fr;
 }
 
-/* ── Header ───────────────────────────────────────────────── */
-.app-header {
+/* ─── APP WRAPPER ─────────────────────────────────────────────── */
+.app-wrapper {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 24px;
-  background: #2c3e50;
-  color: #ffffff;
+  flex-direction: column;
+  min-height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ─── HEADER ──────────────────────────────────────────────────── */
+.app-header {
+  background-color: var(--color-felt-light);
+  border-bottom: 2px solid var(--color-gold);
+  padding: var(--space-2) var(--space-3);
+  text-align: center;
+}
+
+.header-inner {
+  max-width: 600px;
+  margin: 0 auto;
 }
 
 .app-title {
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  font-family: Georgia, serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
 }
 
-/* "＋ New Task" button */
-.btn-new-task {
-  background: #ffffff;
-  color: #2c3e50;
-  border: none;
-  border-radius: 6px;
-  padding: 7px 16px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
-
-.btn-new-task:hover {
-  background: #ecf0f1;
-}
-
-.btn-new-task:active {
-  transform: scale(0.97);
-}
-
-/* ── Two-column content area ──────────────────────────────── */
-.app-content {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  overflow: hidden;          /* children manage their own scroll */
-  height: 100%;
-}
-
-/* ── Sidebar (aside) ──────────────────────────────────────── */
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  border-right: 1px solid #ddd;
-  background: #fafafa;
-}
-
-/* ── Filter bar ───────────────────────────────────────────── */
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ddd;
-  background: #fafafa;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-/* Individual filter button */
-.filter-btn {
-  border: 1px solid #bdc3c7;
-  border-radius: 20px;
-  padding: 4px 12px;
-  font-size: 12px;
-  font-weight: 500;
-  background: #ffffff;
-  color: #555;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  white-space: nowrap;
-}
-
-.filter-btn:hover {
-  border-color: #3498db;
-  color: #3498db;
-}
-
-/* Active filter state */
-.filter-btn.active {
-  background: #3498db;
-  border-color: #3498db;
-  color: #ffffff;
-}
-
-/* ── Task list (ul) ───────────────────────────────────────── */
-.task-list {
-  list-style: none;
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* Individual task item */
-.task-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #ebebeb;
-  cursor: pointer;
-  transition: background 0.12s ease;
-}
-
-.task-item:hover {
-  background: #f0f4f8;
-}
-
-/* Active / selected task */
-.task-item.active {
-  background: #e3f2fd;
-  border-left: 3px solid #3498db;
-  padding-left: 13px; /* compensate for 3px border */
-}
-
-/* Task title text inside the list item */
-.task-item-title {
-  flex: 1;
-  font-size: 13px;
-  font-weight: 500;
-  color: #2c3e50;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ── Status Badges ────────────────────────────────────────── */
-.status-badge {
+.title-suit {
   display: inline-block;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #ffffff;
-  white-space: nowrap;
-  flex-shrink: 0;
+  margin: 0 var(--space-1);
 }
 
-.status-badge--todo {
-  background: #95a5a6;
+.title-suit--heart,
+.title-suit--diamond {
+  color: var(--color-card-red);
 }
 
-.status-badge--in-progress {
-  background: #3498db;
+.title-suit--spade,
+.title-suit--club {
+  color: var(--color-text-primary);
 }
 
-.status-badge--done {
-  background: #27ae60;
-}
-
-/* ── Detail Panel (main) ──────────────────────────────────── */
-#detail-panel {
-  overflow-y: auto;
-  padding: 24px;
-  background: #ffffff;
-}
-
-/* Task title in detail panel */
-#detail-panel h2 {
-  font-size: 22px;
-  font-weight: 700;
-  color: #2c3e50;
-  margin-bottom: 20px;
-  line-height: 1.3;
-}
-
-/* Labelled field rows */
-.detail-field {
-  margin-bottom: 20px;
-}
-
-.detail-field-label {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.7px;
-  color: #7f8c8d;
-  margin-bottom: 6px;
-}
-
-.detail-field-value {
-  font-size: 14px;
-  color: #2c3e50;
-}
-
-.detail-field-value.muted {
-  color: #95a5a6;
+.app-subtitle {
+  font-family: Georgia, serif;
+  font-size: 0.95rem;
   font-style: italic;
-}
-
-/* Status dropdown in detail panel */
-.status-select {
-  appearance: none;
-  -webkit-appearance: none;
-  display: inline-block;
-  padding: 6px 32px 6px 12px;
-  border: 1px solid #bdc3c7;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #2c3e50;
-  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555' d='M6 8L0 0h12z'/%3E%3C/svg%3E") no-repeat right 10px center;
-  cursor: pointer;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.status-select:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-}
-
-/* ── Empty-state placeholder ──────────────────────────────── */
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  min-height: 300px;
-  text-align: center;
-  color: #bdc3c7;
-  user-select: none;
-}
-
-.empty-state-icon {
-  font-size: 56px;
-  margin-bottom: 16px;
-  opacity: 0.6;
-}
-
-.empty-state-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
-  color: #95a5a6;
-}
-
-.empty-state-hint {
-  font-size: 13px;
-  color: #bdc3c7;
-}
-
-/* ── Modal / Dialog ───────────────────────────────────────── */
-#task-modal {
-  border: none;
-  border-radius: 10px;
-  padding: 0;
-  max-width: 500px;
-  width: 90%;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-  /* Native <dialog> centres itself; add a slight top offset for aesthetics */
-  margin: auto;
-}
-
-/* Semi-transparent dark backdrop */
-#task-modal::backdrop {
-  background: rgba(0, 0, 0, 0.45);
-}
-
-/* Form inside the dialog */
-#task-form {
-  padding: 28px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-#task-form h2 {
-  font-size: 18px;
-  font-weight: 700;
-  color: #2c3e50;
-}
-
-/* Form field label + input pairs */
-.form-label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #555;
-}
-
-.form-label input[type="text"],
-.form-label textarea {
-  width: 100%;
-  padding: 9px 12px;
-  border: 1px solid #bdc3c7;
-  border-radius: 6px;
-  font-family: inherit;
-  font-size: 14px;
-  color: #2c3e50;
-  resize: vertical;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.form-label input[type="text"]:focus,
-.form-label textarea:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-}
-
-.form-label input[type="text"]::placeholder,
-.form-label textarea::placeholder {
-  color: #bdc3c7;
-  font-weight: 400;
-}
-
-/* Modal action buttons row */
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  color: var(--color-text-muted);
   margin-top: 4px;
 }
 
-/* ── Generic Button Styles ────────────────────────────────── */
-.btn {
-  padding: 8px 18px;
+/* ─── STAGE (main layout) ─────────────────────────────────────── */
+.stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-2);
+  flex: 1;
+}
+
+/* ─── DECK AREA ───────────────────────────────────────────────── */
+.deck-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* The stacked deck — cards are children injected by JS */
+.deck-stack {
+  position: relative;
+  width: var(--card-deck-w);
+  height: var(--card-deck-h);
+  cursor: default;
+}
+
+/* Individual cards inside the deck-stack (JS renders .deck-card) */
+.deck-stack .deck-card {
+  position: absolute;
+  width: var(--card-deck-w);
+  height: var(--card-deck-h);
+  border-radius: 8px;
+  /* stacking illusion: each card slightly offset */
+  transform: translateY(calc(var(--deck-index, 0) * -1px))
+             translateX(calc(var(--deck-index, 0) * 0.3px));
+  transition: transform 400ms ease-out;
+}
+
+/* Fan/spread animation */
+.deck-stack.deck--spread .deck-card:nth-child(1)  { transform: rotate(-15deg) translateX(-30px) translateY(10px); }
+.deck-stack.deck--spread .deck-card:nth-child(2)  { transform: rotate(-10deg) translateX(-20px) translateY(5px);  }
+.deck-stack.deck--spread .deck-card:nth-child(3)  { transform: rotate(-5deg)  translateX(-10px) translateY(2px);  }
+.deck-stack.deck--spread .deck-card:nth-child(4)  { transform: rotate(0deg)   translateX(0px);                   }
+.deck-stack.deck--spread .deck-card:nth-child(5)  { transform: rotate(5deg)   translateX(10px) translateY(2px);  }
+.deck-stack.deck--spread .deck-card:nth-child(6)  { transform: rotate(10deg)  translateX(20px) translateY(5px);  }
+.deck-stack.deck--spread .deck-card:nth-child(n+7){ transform: rotate(15deg)  translateX(30px) translateY(10px); }
+
+/* Reassemble transition — snap back over 600ms */
+.deck-stack.deck--reassemble .deck-card {
+  transition: transform 600ms ease-in-out;
+  transform: none;
+}
+
+.deck-count-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin-top: var(--space-1);
+}
+
+#deck-count {
+  font-weight: 700;
+  color: var(--color-gold);
+}
+
+/* ─── STAGE DIVIDER ───────────────────────────────────────────── */
+.stage-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gold);
+  font-size: 1.4rem;
+  padding: var(--space-1) 0;
+  opacity: 0.8;
+}
+
+.divider-icon {
+  display: inline-block;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { text-shadow: 0 0 4px var(--color-gold); opacity: 0.8; }
+  50%       { text-shadow: 0 0 14px var(--color-gold); opacity: 1;   }
+}
+
+/* ─── REVEAL AREA ─────────────────────────────────────────────── */
+.reveal-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.reveal-heading {
+  font-family: Georgia, serif;
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* ─── CARD — 3D FLIP CONTAINER ────────────────────────────────── */
+.reveal-card {
+  position: relative;
+  width: var(--card-reveal-w);
+  height: var(--card-reveal-h);
+  /* 3D flip setup */
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  transition: transform 600ms ease-in-out;
+  border-radius: 12px;
+}
+
+/* Empty/placeholder state — dashed ghost frame */
+.reveal-card:not(.reveal-card--visible) {
+  border: 2px dashed var(--color-text-muted);
+  border-radius: 12px;
+  opacity: 0.6;
+}
+
+/* Entrance animation */
+.reveal-card--visible {
+  animation: card-entrance 300ms ease-out forwards;
+}
+
+@keyframes card-entrance {
+  from { opacity: 0; transform: scale(0.85) translateY(16px); }
+  to   { opacity: 1; transform: scale(1) translateY(0);       }
+}
+
+/* Flip: bring parent to rotateY(180deg) to reveal front face */
+.reveal-card--flip {
+  transform: rotateY(180deg);
+}
+
+/* Exit animation */
+.reveal-card--exit {
+  animation: card-exit 400ms ease-in forwards;
+}
+
+@keyframes card-exit {
+  from { opacity: 1; transform: scale(1) rotateY(180deg);          }
+  to   { opacity: 0; transform: scale(0.8) rotateY(180deg) translateY(-20px); }
+}
+
+/* ─── CARD FACES ───────────────────────────────────────────────── */
+.card-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  /* Each face hides its back side */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  overflow: hidden;
+  border: 2px solid rgba(255,255,255,0.15);
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.5),
+    0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* BACK FACE — starts facing user */
+.card-face--back {
+  transform: rotateY(0deg);
+}
+
+/* Card back pattern — CSS crosshatch on navy */
+.card-back-pattern {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(
+      45deg,
+      var(--color-card-back-pattern) 0px, var(--color-card-back-pattern) 2px,
+      transparent 2px, transparent 10px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      var(--color-card-back-pattern) 0px, var(--color-card-back-pattern) 2px,
+      transparent 2px, transparent 10px
+    );
+  background-color: var(--color-card-back-bg);
+  /* Gold inner frame */
+  box-shadow:
+    inset 0 0 0 4px var(--color-gold),
+    inset 0 0 0 8px var(--color-card-back-bg),
+    inset 0 0 0 10px var(--color-gold);
+}
+
+/* FRONT FACE — starts rotated away (hidden), revealed by parent flip */
+.card-face--front {
+  transform: rotateY(180deg);
+  background-color: var(--color-card-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+/* Placeholder text shown before any card is revealed */
+.card-placeholder-text {
+  font-family: Georgia, serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  /* visible only when card hasn't flipped yet */
+}
+
+/* ─── CARD CONTENT (populated by JS) ─────────────────────────── */
+/* Corner rank+suit labels */
+.card-corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  gap: 1px;
+}
+
+.card-corner:first-child {
+  top: 10px;
+  left: 10px;
+}
+
+.card-corner:last-child {
+  bottom: 10px;
+  right: 10px;
+  transform: rotate(180deg);
+}
+
+.card-rank {
+  font-family: Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.card-suit {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+/* Large center suit */
+.card-center-suit {
+  font-family: Georgia, serif;
+  font-size: 4rem;
+  line-height: 1;
+}
+
+/* Color variants */
+.card--red  .card-rank,
+.card--red  .card-suit,
+.card--red  .card-center-suit { color: var(--color-card-red);   }
+
+.card--black .card-rank,
+.card--black .card-suit,
+.card--black .card-center-suit { color: var(--color-card-black); }
+
+/* Deck cards share the back pattern */
+.card {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Deck card back pattern (applied to .card .card-face--back or inline) */
+.card .card-back-pattern,
+.deck-card {
+  background:
+    repeating-linear-gradient(
+      45deg,
+      var(--color-card-back-pattern) 0px, var(--color-card-back-pattern) 1px,
+      transparent 1px, transparent 7px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      var(--color-card-back-pattern) 0px, var(--color-card-back-pattern) 1px,
+      transparent 1px, transparent 7px
+    );
+  background-color: var(--color-card-back-bg);
   border-radius: 6px;
-  font-size: 14px;
+  border: 1px solid rgba(240, 192, 64, 0.3);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+/* ─── REVEAL LABEL ────────────────────────────────────────────── */
+.reveal-label {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  min-height: 1.4em;
+  font-style: italic;
+}
+
+/* ─── CONTROLS ────────────────────────────────────────────────── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background-color: rgba(0,0,0,0.15);
+  border-top: 1px solid rgba(240,192,64,0.2);
+  border-bottom: 1px solid rgba(240,192,64,0.2);
+}
+
+/* Base button */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 14px var(--space-4);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
   font-weight: 600;
+  border-radius: 8px;
+  border: 2px solid transparent;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
-  border: 1px solid transparent;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
-.btn:active {
-  transform: scale(0.97);
+.btn:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
 }
 
-/* Cancel button — neutral / outlined */
-.btn-cancel {
-  background: #ffffff;
-  border-color: #bdc3c7;
-  color: #555;
+.btn:focus {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
 }
 
-.btn-cancel:hover {
-  background: #f0f4f8;
-  border-color: #95a5a6;
+/* Shuffle button — gold CTA */
+.btn-shuffle {
+  background-color: var(--color-gold);
+  color: #1a1a2e;
+  border-color: var(--color-gold);
+  box-shadow: 0 2px 8px rgba(240, 192, 64, 0.35);
 }
 
-/* Primary button — solid blue */
-.btn-primary {
-  background: #3498db;
-  border-color: #3498db;
-  color: #ffffff;
+.btn-shuffle:hover:not(:disabled) {
+  background-color: #f5ce5a;
+  border-color: #f5ce5a;
+  transform: scale(1.03);
+  box-shadow: 0 4px 16px rgba(240, 192, 64, 0.55);
 }
 
-.btn-primary:hover {
-  background: #2980b9;
-  border-color: #2980b9;
+.btn-shuffle:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+/* Disabled / loading state */
+.btn-shuffle:disabled,
+.btn-shuffle.btn--loading {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+  animation: loading-pulse 1s ease-in-out infinite;
+}
+
+@keyframes loading-pulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(240,192,64,0.35); }
+  50%       { box-shadow: 0 2px 20px rgba(240,192,64,0.7); }
+}
+
+/* Reset button — ghost/outlined */
+.btn-reset {
+  background-color: transparent;
+  color: #6B8F71;
+  border-color: #6B8F71;
+}
+
+.btn-reset:hover:not(:disabled) {
+  background-color: rgba(107,143,113,0.12);
+  border-color: #85aa8b;
+  color: #85aa8b;
+  transform: scale(1.02);
+}
+
+.btn-reset:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.btn-reset:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-icon {
+  font-size: 1.1em;
+  display: inline-block;
+}
+
+/* ─── STATS BAR ───────────────────────────────────────────────── */
+.stats-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  background-color: var(--color-felt-dark);
+  padding: 12px var(--space-3);
+  border-top: 1px solid rgba(240,192,64,0.15);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-value {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--color-gold);
+  line-height: 1;
+  transition: transform 200ms ease;
+}
+
+/* Bump animation when value updates */
+.stat-value--bump {
+  animation: stat-bump 300ms ease-out forwards;
+}
+
+@keyframes stat-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.stat-label {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-muted);
+}
+
+.stat-divider {
+  color: var(--color-text-muted);
+  opacity: 0.5;
+  font-size: 1.2rem;
+  line-height: 1;
+  user-select: none;
+}
+
+/* ─── RESPONSIVE — Mobile-first then ≥600px ───────────────────── */
+/* Mobile defaults (< 600px) already set via base styles above */
+/* Mobile card sizes */
+@media (max-width: 599px) {
+  :root {
+    --card-reveal-w: 120px;
+    --card-reveal-h: 168px;
+    --card-deck-w:   80px;
+    --card-deck-h:   112px;
+  }
+
+  .stage {
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-1);
+  }
+
+  .stage-divider {
+    transform: rotate(90deg);
+    padding: 0;
+    font-size: 1.1rem;
+  }
+
+  .controls {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-title {
+    font-size: 1.5rem;
+  }
+
+  .card-center-suit {
+    font-size: 2.8rem;
+  }
+
+  .stats-bar {
+    gap: var(--space-1);
+    padding: 10px var(--space-2);
+  }
+
+  .stat-value {
+    font-size: 1.1rem;
+  }
+}
+
+/* Desktop layout — side by side */
+@media (min-width: 600px) {
+  .stage {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-5);
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .deck-area,
+  .reveal-area {
+    flex: 0 0 auto;
+  }
+
+  .stage-divider {
+    flex-shrink: 0;
+  }
+
+  .controls {
+    gap: var(--space-3);
+  }
+}
+
+/* ─── ACCESSIBILITY ───────────────────────────────────────────── */
+/* High-contrast focus rings on all interactive elements */
+a:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-gold);
+  outline-offset: 3px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
