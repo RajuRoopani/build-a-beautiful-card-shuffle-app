@@ -3,81 +3,137 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Task Dashboard</title>
+  <title>Card Shuffle — Draw Your Fate</title>
+  <meta name="description" content="A casino-themed card shuffle app. Shuffle the deck and reveal your fate." />
   <link rel="stylesheet" href="style.css" />
-  <script src="app.js" defer></script>
 </head>
 <body>
+  <div class="app-wrapper">
 
-  <!-- ===== HEADER ===== -->
-  <header class="app-header">
-    <h1 class="app-title">Task Dashboard</h1>
-    <button id="open-modal-btn" class="btn btn-new-task" type="button">
-      ＋ New Task
-    </button>
-  </header>
+    <!-- ═══ HEADER ═══════════════════════════════════════════════════════ -->
+    <header class="app-header" role="banner">
+      <div class="header-inner">
+        <h1 class="app-title">
+          <span class="title-suit title-suit--spade" aria-hidden="true">&#9824;</span>
+          Card Shuffle
+          <span class="title-suit title-suit--heart" aria-hidden="true">&#9829;</span>
+        </h1>
+        <p class="app-subtitle">Shuffle the deck &amp; draw your fate</p>
+      </div>
+    </header>
 
-  <!-- ===== TWO-COLUMN CONTENT AREA ===== -->
-  <div class="app-content">
+    <!-- ═══ STAGE (deck + divider + reveal) ═════════════════════════════ -->
+    <main class="stage" aria-label="Card shuffle stage">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar" aria-label="Task list">
+      <!-- Deck pile -->
+      <section class="deck-area" aria-label="Card deck">
+        <div
+          id="deck-stack"
+          class="deck-stack"
+          role="img"
+          aria-label="Card deck — 52 cards"
+          tabindex="0"
+          title="Click to shuffle and draw"
+        ></div>
+        <p class="deck-count-label">
+          <span id="deck-count">52</span> cards remaining
+        </p>
+      </section>
 
-      <!-- Filter buttons — rendered (and re-rendered) by JS -->
-      <div class="filter-bar" id="filter-bar" role="toolbar" aria-label="Filter tasks"></div>
+      <!-- Visual divider between deck and reveal areas -->
+      <div class="stage-divider" aria-hidden="true">
+        <span class="divider-icon">&#9830;</span>
+      </div>
 
-      <!-- Task list — rendered (and re-rendered) by JS -->
-      <ul class="task-list" id="task-list" role="listbox" aria-label="Tasks"></ul>
+      <!-- Reveal area — card flips here after shuffle -->
+      <section class="reveal-area" aria-label="Revealed card" aria-live="polite">
+        <h2 class="reveal-heading">Your Card</h2>
+
+        <!--
+          #reveal-card — the 3D flip container.
+          JS adds/removes: reveal-card--visible, reveal-card--flip, reveal-card--exit
+          aria-hidden="true" set by JS on init; removed when a card is revealed.
+        -->
+        <div
+          id="reveal-card"
+          class="reveal-card"
+          aria-hidden="true"
+          aria-label="Card reveal area"
+        >
+          <!-- Back face — visible by default (CSS rotateY 0deg) -->
+          <div
+            id="reveal-back"
+            class="card-face card-face--back"
+            aria-hidden="true"
+          >
+            <div class="card-back-pattern"></div>
+          </div>
+
+          <!-- Front face — rotated away (CSS rotateY 180deg); JS populates content -->
+          <div
+            id="reveal-front"
+            class="card-face card-face--front"
+            aria-label="Revealed card"
+          ></div>
+        </div>
+
+        <!-- Accessible text label updated by JS after each reveal -->
+        <p id="reveal-label" class="reveal-label" aria-live="polite"></p>
+      </section>
+
+    </main>
+
+    <!-- ═══ CONTROLS ══════════════════════════════════════════════════════ -->
+    <footer class="controls" role="region" aria-label="Game controls">
+      <button
+        id="btn-shuffle"
+        class="btn btn-shuffle"
+        type="button"
+        aria-label="Shuffle deck and draw a random card"
+      >
+        <span class="btn-icon" aria-hidden="true">&#127183;</span>
+        Shuffle &amp; Draw
+      </button>
+
+      <button
+        id="btn-reset"
+        class="btn btn-reset"
+        type="button"
+        aria-label="Reset deck to 52 cards"
+        disabled
+      >
+        <span class="btn-icon" aria-hidden="true">&#8634;</span>
+        Reset
+      </button>
+    </footer>
+
+    <!-- ═══ STATS BAR ═════════════════════════════════════════════════════ -->
+    <aside class="stats-bar" aria-label="Session statistics">
+
+      <div class="stat">
+        <span class="stat-value" id="stat-drawn">0</span>
+        <span class="stat-label">Drawn</span>
+      </div>
+
+      <div class="stat-divider" aria-hidden="true">|</div>
+
+      <div class="stat">
+        <span class="stat-value" id="stat-remaining">52</span>
+        <span class="stat-label">Remaining</span>
+      </div>
+
+      <div class="stat-divider" aria-hidden="true">|</div>
+
+      <div class="stat">
+        <span class="stat-value" id="stat-shuffles">0</span>
+        <span class="stat-label">Shuffles</span>
+      </div>
 
     </aside>
 
-    <!-- DETAIL PANEL — rendered by JS -->
-    <main id="detail-panel" aria-label="Task details">
-      <!-- JS renders task details or an empty-state placeholder here -->
-    </main>
+  </div><!-- /.app-wrapper -->
 
-  </div><!-- /.app-content -->
-
-  <!-- ===== CREATE TASK MODAL ===== -->
-  <dialog id="task-modal" aria-labelledby="modal-heading" aria-modal="true">
-    <form id="task-form" method="dialog" novalidate>
-
-      <h2 id="modal-heading">Create New Task</h2>
-
-      <label class="form-label" for="task-title">
-        Title
-        <input
-          type="text"
-          id="task-title"
-          name="task-title"
-          placeholder="Enter a task title…"
-          required
-          maxlength="100"
-          autocomplete="off"
-        />
-      </label>
-
-      <label class="form-label" for="task-description">
-        Description
-        <textarea
-          id="task-description"
-          name="task-description"
-          rows="4"
-          placeholder="Optional description…"
-        ></textarea>
-      </label>
-
-      <div class="modal-actions">
-        <button type="button" id="modal-cancel-btn" class="btn btn-cancel">
-          Cancel
-        </button>
-        <button type="submit" class="btn btn-primary">
-          Create Task
-        </button>
-      </div>
-
-    </form>
-  </dialog>
-
+  <!-- External JS — defer so it runs after DOM is parsed -->
+  <script src="app.js" defer></script>
 </body>
 </html>
