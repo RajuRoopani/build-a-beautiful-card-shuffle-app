@@ -47,16 +47,38 @@ class Message(BaseModel):
 # ---------------------------------------------------------------------------
 
 class GroupCreate(BaseModel):
-    """Payload for creating a group chat."""
+    """Payload for creating a group chat.
+
+    `creator_id` is required. `member_ids` is optional — the creator is
+    always automatically added as the first member.
+    """
     name: str
     creator_id: str
     member_ids: List[str] = []
+
+
+class Group(BaseModel):
+    """Returned group object — matches the confirmed API contract."""
+    id: str
+    name: str
+    creator_id: str
+    members: List[str]
+    created_at: str
 
 
 class GroupMessageCreate(BaseModel):
     """Payload for sending a message to a group."""
     sender_id: str
     content: str
+
+
+class GroupMessage(BaseModel):
+    """Returned group message object."""
+    id: str
+    group_id: str
+    sender_id: str
+    content: str
+    created_at: str
 
 
 class AddMember(BaseModel):
