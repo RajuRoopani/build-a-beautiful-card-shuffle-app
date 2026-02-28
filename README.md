@@ -25,10 +25,8 @@ A beautiful, single-page card shuffle application with casino aesthetics, smooth
 ## File Structure
 
 ```
-index.html          Semantic markup with ARIA attributes, card containers, controls
-style.css           Casino theme with CSS custom properties, animations, responsive layout
-app.js              State machine, Fisher-Yates shuffle, animation orchestration, event wiring
-README.md           This file
+index.html          Single-file app: HTML structure + <style> (casino theme, animations, responsive) + <script> (state machine, Fisher-Yates shuffle, animation orchestration)
+README.md           Project documentation (this file)
 ```
 
 ## How to Run
@@ -127,7 +125,7 @@ Modern browsers with support for:
 
 ## Architecture Overview
 
-### State Machine (`app.js`)
+### State Machine
 ```
 Idle → Shuffling → Revealing → Idle
 ```
