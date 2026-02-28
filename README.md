@@ -1,302 +1,246 @@
-# Note-Taking REST API
+# Instagram-Like Social Media API
 
-A simple yet powerful REST API for managing notes, built with **FastAPI**. Create, read, update, and delete notes through standard HTTP endpoints.
+A FastAPI-based REST API that simulates core Instagram features, providing endpoints for user authentication, post management, social interactions (follows, likes, shares), and user blocking functionality.
 
-## Project Description
+## Features
 
-This Note-Taking REST API provides a complete CRUD (Create, Read, Update, Delete) interface for managing notes. Each note has:
-- A unique integer ID (auto-incremented)
-- A title and content
-- Creation and update timestamps
-
-The API is built with **FastAPI** and uses **in-memory storage** for fast development and testing. Perfect for learning REST API design or as a foundation for more complex note-taking applications.
-
-**Note:** All data is stored in memory and will be reset when the server restarts.
-
-## Project Structure
-
-```
-note-taking-api/
-├── app/
-│   ├── __init__.py
-│   ├── main.py           # FastAPI application and endpoints
-│   └── models.py         # Pydantic models and in-memory storage
-├── tests/
-│   ├── __init__.py
-│   └── test_notes.py     # Comprehensive test suite
-├── requirements.txt      # Python dependencies
-└── README.md            # This file
-```
+- **User Management**: Register users and manage profiles
+- **Posts**: Create, retrieve, and delete posts with media attachments
+- **Follows**: Follow/unfollow users and view follower/following lists
+- **Feed**: View a personalized feed based on followed users
+- **Likes**: Like/unlike posts and track post likes
+- **Shares**: Share posts to extend reach
+- **Blocks**: Block users to prevent interactions
+- **Block Enforcement**: Blocked users cannot like, share, or interact with a blocker's content
 
 ## Installation
 
 ### Prerequisites
-- Python 3.8 or higher
-- pip (Python package manager)
+- Python 3.8+
+- pip
 
-### Install Dependencies
+### Setup
+
+Clone the repository and install dependencies:
 
 ```bash
+git clone <repository-url>
+cd <project-directory>
 pip install -r requirements.txt
 ```
 
-This installs:
-- **fastapi** — Modern web framework for building APIs
-- **uvicorn** — ASGI server for running FastAPI
-- **pytest** — Testing framework
-- **httpx** — HTTP client for testing
-
 ## Running the API
 
-Start the development server with hot reload enabled:
+Start the development server:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The API will be available at **http://localhost:8000**
+The API will be available at `http://localhost:8000`
 
-You can also view the interactive API documentation:
-- **Swagger UI:** http://localhost:8000/docs
-- **ReDoc:** http://localhost:8000/redoc
+Interactive API documentation is available at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
 
 ## Running Tests
 
-Run the complete test suite:
+Run the full test suite:
 
 ```bash
-pytest tests/ -v
+pytest -v
 ```
 
-Run tests with coverage:
+Run specific test files:
 
 ```bash
-pytest tests/ -v --cov=app
+# Test follows functionality
+pytest tests/test_follows.py -v
+
+# Test likes functionality
+pytest tests/test_likes.py -v
+
+# Test shares functionality
+pytest tests/test_shares.py -v
+
+# Test blocks functionality
+pytest tests/test_blocks.py -v
+```
+
+Run with coverage:
+
+```bash
+pytest --cov=app tests/ -v
 ```
 
 ## API Endpoints
 
+### User Management
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/notes` | Create a new note |
-| GET | `/notes` | List all notes |
-| GET | `/notes/{id}` | Get a single note by ID |
-| PUT | `/notes/{id}` | Update a note |
-| DELETE | `/notes/{id}` | Delete a note |
+| POST | `/users` | Register a new user |
+| GET | `/users/{user_id}` | Get user profile with social counts |
+| PUT | `/users/{user_id}` | Update user profile (bio, display_name) |
 
-## Example API Usage
+### Posts
 
-### 1. Create a Note
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/posts` | Create a new post |
+| GET | `/posts/{post_id}` | Get a specific post |
+| DELETE | `/posts/{post_id}` | Delete a post |
+| GET | `/users/{user_id}/posts` | Get all posts by a user |
 
-**Request:**
-```bash
-curl -X POST http://localhost:8000/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "My First Note",
-    "content": "This is the content of my first note."
-  }'
-```
+### Feed
 
-**Response:**
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/feed/{user_id}` | Get personalized feed for a user |
+
+### Follows
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/users/{user_id}/follow` | Follow a user |
+| DELETE | `/users/{user_id}/follow` | Unfollow a user |
+| GET | `/users/{user_id}/followers` | Get list of followers |
+| GET | `/users/{user_id}/following` | Get list of following |
+
+### Likes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/posts/{post_id}/like` | Like a post |
+| DELETE | `/posts/{post_id}/like` | Unlike a post |
+| GET | `/posts/{post_id}/likes` | Get likes for a post |
+
+### Shares
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/posts/{post_id}/share` | Share a post |
+| GET | `/posts/{post_id}/shares` | Get shares for a post |
+
+### Blocks
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/users/{user_id}/block` | Block a user |
+| DELETE | `/users/{user_id}/block` | Unblock a user |
+| GET | `/users/{user_id}/blocked` | Get list of blocked users |
+
+## Data Models
+
+### User
+
 ```json
 {
-  "id": 1,
-  "title": "My First Note",
-  "content": "This is the content of my first note.",
-  "created_at": "2024-01-15T10:30:45.123456+00:00",
-  "updated_at": "2024-01-15T10:30:45.123456+00:00"
+  "id": "uuid",
+  "username": "string",
+  "email": "string",
+  "display_name": "string",
+  "bio": "string or null",
+  "follower_count": 0,
+  "following_count": 0,
+  "post_count": 0
 }
 ```
 
-### 2. List All Notes
+### Post
 
-**Request:**
-```bash
-curl -X GET http://localhost:8000/notes \
-  -H "Content-Type: application/json"
-```
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "title": "My First Note",
-    "content": "This is the content of my first note.",
-    "created_at": "2024-01-15T10:30:45.123456+00:00",
-    "updated_at": "2024-01-15T10:30:45.123456+00:00"
-  },
-  {
-    "id": 2,
-    "title": "Shopping List",
-    "content": "Milk, eggs, bread, cheese",
-    "created_at": "2024-01-15T10:35:20.654321+00:00",
-    "updated_at": "2024-01-15T10:35:20.654321+00:00"
-  }
-]
-```
-
-### 3. Get a Single Note
-
-**Request:**
-```bash
-curl -X GET http://localhost:8000/notes/1 \
-  -H "Content-Type: application/json"
-```
-
-**Response:**
 ```json
 {
-  "id": 1,
-  "title": "My First Note",
-  "content": "This is the content of my first note.",
-  "created_at": "2024-01-15T10:30:45.123456+00:00",
-  "updated_at": "2024-01-15T10:30:45.123456+00:00"
+  "id": "uuid",
+  "user_id": "uuid",
+  "media_url": "string",
+  "media_type": "image or video",
+  "caption": "string or null",
+  "created_at": "ISO 8601 datetime",
+  "like_count": 0,
+  "share_count": 0
 }
 ```
 
-### 4. Update a Note
+### Share
 
-**Request:**
-```bash
-curl -X PUT http://localhost:8000/notes/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "My Updated Note",
-    "content": "This is the updated content."
-  }'
-```
-
-**Response:**
 ```json
 {
-  "id": 1,
-  "title": "My Updated Note",
-  "content": "This is the updated content.",
-  "created_at": "2024-01-15T10:30:45.123456+00:00",
-  "updated_at": "2024-01-15T10:40:15.987654+00:00"
+  "id": "uuid",
+  "user_id": "uuid",
+  "original_post_id": "uuid",
+  "created_at": "ISO 8601 datetime"
 }
 ```
 
-**Note:** You can update just the title or just the content by providing only one field:
+## Error Responses
 
-```bash
-curl -X PUT http://localhost:8000/notes/1 \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "New Title Only"
-  }'
-```
+### 400 Bad Request
+- Duplicate username on registration
+- Self-follow/self-block attempts
+- Attempting to follow/block/like already-interacted user
 
-### 5. Delete a Note
+### 403 Forbidden
+- Attempting to interact with content when blocked by the content owner
 
-**Request:**
-```bash
-curl -X DELETE http://localhost:8000/notes/1 \
-  -H "Content-Type: application/json"
-```
+### 404 Not Found
+- User not found
+- Post not found
 
-**Response:**
-```json
-{
-  "detail": "Note deleted"
-}
-```
+### 422 Unprocessable Entity
+- Invalid or missing required fields in request body
 
-## Request/Response Examples
+## Tech Stack
 
-### Creating a Note - Detailed Example
+- **Framework**: FastAPI
+- **Data Validation**: Pydantic
+- **Testing**: pytest, httpx (TestClient)
+- **Storage**: In-memory dictionaries and sets
+- **Server**: Uvicorn
 
-**Command:**
-```bash
-curl -X POST http://localhost:8000/notes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Project Ideas",
-    "content": "1. Build a todo app\n2. Create a blog\n3. Learn FastAPI"
-  }'
-```
+## Architecture
 
-**Formatted Request Body:**
-```json
-{
-  "title": "Project Ideas",
-  "content": "1. Build a todo app\n2. Create a blog\n3. Learn FastAPI"
-}
-```
+The API uses in-memory data stores for simplicity and fast development iteration:
 
-**Response (201 Created):**
-```json
-{
-  "id": 3,
-  "title": "Project Ideas",
-  "content": "1. Build a todo app\n2. Create a blog\n3. Learn FastAPI",
-  "created_at": "2024-01-15T11:00:00.000000+00:00",
-  "updated_at": "2024-01-15T11:00:00.000000+00:00"
-}
-```
+- `users_db`: Dictionary of user records
+- `posts_db`: Dictionary of post records
+- `follows`: Set of (follower_id, following_id) tuples
+- `followers`: Reverse index mapping user_id to set of follower IDs
+- `likes`: Set of (user_id, post_id) tuples
+- `shares_db`: Dictionary of share records
+- `post_shares`: Index mapping post_id to set of sharing user IDs
+- `blocks`: Set of (blocker_id, blocked_id) tuples
 
-### Error Handling
+## Testing
 
-If you request a note that doesn't exist, you'll receive a 404 error:
+The test suite includes:
+- **test_follows.py**: 9 tests covering follow/unfollow, follower/following lists
+- **test_likes.py**: 9 tests covering like/unlike, like lists, and block enforcement
+- **test_shares.py**: 6 tests covering share creation, share counts, and block enforcement
+- **test_blocks.py**: 11 tests covering block/unblock, blocked lists, and block enforcement
 
-**Request:**
-```bash
-curl -X GET http://localhost:8000/notes/999
-```
+Total: **35+ tests** ensuring comprehensive coverage of all features
 
-**Response (404 Not Found):**
-```json
-{
-  "detail": "Note not found"
-}
-```
-
-## Important Notes
-
-### In-Memory Storage
-- Data is stored **in memory only** and **will be lost when the server restarts**
-- This makes the API ideal for development, testing, and learning
-- For production use, consider integrating a database like PostgreSQL or SQLite
-
-### Auto-Increment IDs
-- Note IDs are automatically generated as sequential integers
-- The first note will have ID 1, the second ID 2, etc.
-- IDs are never reused, even after deletion
-
-### Timestamps
-- All timestamps are in UTC timezone (timezone-aware)
-- Timestamps are automatically managed by the API
-- `created_at` never changes
-- `updated_at` updates whenever the note is modified
-
-## Development
-
-### Code Organization
-- `app/main.py` — FastAPI application with all endpoint handlers
-- `app/models.py` — Pydantic request/response schemas and in-memory storage logic
-- `tests/test_notes.py` — Comprehensive test suite using pytest and TestClient
-
-### Testing with TestClient
-The test suite uses FastAPI's `TestClient` to simulate HTTP requests:
-
-```python
-from fastapi.testclient import TestClient
-from app.main import app
-
-client = TestClient(app)
-response = client.post("/notes", json={"title": "Test", "content": "Content"})
-assert response.status_code == 201
-```
+Each test:
+- Resets in-memory storage before execution (isolation)
+- Uses FastAPI's TestClient for integration testing
+- Tests success cases (2xx status codes)
+- Tests error cases (4xx status codes)
+- Tests block enforcement (403 Forbidden)
 
 ## Future Enhancements
 
-Possible extensions to this API:
-- Database integration (SQLite, PostgreSQL)
-- User authentication and authorization
-- Search and filtering capabilities
-- Note categories or tags
+- Persistent database (PostgreSQL/MongoDB)
+- Authentication/JWT tokens
+- Comments and replies
+- Hashtags and mentions
+- User search
+- Notifications
 - Rate limiting
-- Pagination for listing notes
-- Soft deletes (mark as deleted instead of removing)
+- Media processing and storage
+- Pagination for lists
+- Real-time updates (WebSockets)
+
+## License
+
+MIT
