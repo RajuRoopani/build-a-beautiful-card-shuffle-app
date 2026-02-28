@@ -2,3 +2,26 @@ __pycache__/
 *.pyc
 .pytest_cache/
 *.egg-info/
+.env
+*.sqlite
+venv/
+.venv/
+
+# Leftover files from other projects — not part of this app
+src/
+docs/
+app.py
+test_app.py
+tests/conftest.py
+tests/test_api.py
+tests/test_auth.py
+tests/test_boards.py
+tests/test_calculator.py
+tests/test_fibonacci.py
+tests/test_lists.py
+tests/test_rate_limiter.py
+tests/test_string_utils.py
+tests/test_todo.py
+tests/test_todo_edge_cases.py
+tests/test_url_shortener.py
+tests/url_shortener/
