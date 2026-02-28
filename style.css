@@ -1,0 +1,403 @@
+/* ============================================================
+   Task Management Dashboard — Stylesheet
+   Layout: CSS Grid body (header + content row)
+           .app-content: 280px sidebar | fluid main
+   ============================================================ */
+
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  /* System font stack */
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+               Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  color: #2c3e50;
+  line-height: 1.5;
+
+  /* Full-viewport, no page scroll */
+  min-width: 1024px;
+  height: 100vh;
+  overflow: hidden;
+
+  /* Grid: auto-height header + remaining 1fr content row */
+  display: grid;
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: #2c3e50;
+  color: #ffffff;
+}
+
+.app-title {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+/* "＋ New Task" button */
+.btn-new-task {
+  background: #ffffff;
+  color: #2c3e50;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-new-task:hover {
+  background: #ecf0f1;
+}
+
+.btn-new-task:active {
+  transform: scale(0.97);
+}
+
+/* ── Two-column content area ──────────────────────────────── */
+.app-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  overflow: hidden;          /* children manage their own scroll */
+  height: 100%;
+}
+
+/* ── Sidebar (aside) ──────────────────────────────────────── */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  border-right: 1px solid #ddd;
+  background: #fafafa;
+}
+
+/* ── Filter bar ───────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ddd;
+  background: #fafafa;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+/* Individual filter button */
+.filter-btn {
+  border: 1px solid #bdc3c7;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  background: #ffffff;
+  color: #555;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  border-color: #3498db;
+  color: #3498db;
+}
+
+/* Active filter state */
+.filter-btn.active {
+  background: #3498db;
+  border-color: #3498db;
+  color: #ffffff;
+}
+
+/* ── Task list (ul) ───────────────────────────────────────── */
+.task-list {
+  list-style: none;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Individual task item */
+.task-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #ebebeb;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.task-item:hover {
+  background: #f0f4f8;
+}
+
+/* Active / selected task */
+.task-item.active {
+  background: #e3f2fd;
+  border-left: 3px solid #3498db;
+  padding-left: 13px; /* compensate for 3px border */
+}
+
+/* Task title text inside the list item */
+.task-item-title {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2c3e50;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Status Badges ────────────────────────────────────────── */
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #ffffff;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.status-badge--todo {
+  background: #95a5a6;
+}
+
+.status-badge--in-progress {
+  background: #3498db;
+}
+
+.status-badge--done {
+  background: #27ae60;
+}
+
+/* ── Detail Panel (main) ──────────────────────────────────── */
+#detail-panel {
+  overflow-y: auto;
+  padding: 24px;
+  background: #ffffff;
+}
+
+/* Task title in detail panel */
+#detail-panel h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  line-height: 1.3;
+}
+
+/* Labelled field rows */
+.detail-field {
+  margin-bottom: 20px;
+}
+
+.detail-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #7f8c8d;
+  margin-bottom: 6px;
+}
+
+.detail-field-value {
+  font-size: 14px;
+  color: #2c3e50;
+}
+
+.detail-field-value.muted {
+  color: #95a5a6;
+  font-style: italic;
+}
+
+/* Status dropdown in detail panel */
+.status-select {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-block;
+  padding: 6px 32px 6px 12px;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2c3e50;
+  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23555' d='M6 8L0 0h12z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.status-select:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+/* ── Empty-state placeholder ──────────────────────────────── */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  text-align: center;
+  color: #bdc3c7;
+  user-select: none;
+}
+
+.empty-state-icon {
+  font-size: 56px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-state-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #95a5a6;
+}
+
+.empty-state-hint {
+  font-size: 13px;
+  color: #bdc3c7;
+}
+
+/* ── Modal / Dialog ───────────────────────────────────────── */
+#task-modal {
+  border: none;
+  border-radius: 10px;
+  padding: 0;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  /* Native <dialog> centres itself; add a slight top offset for aesthetics */
+  margin: auto;
+}
+
+/* Semi-transparent dark backdrop */
+#task-modal::backdrop {
+  background: rgba(0, 0, 0, 0.45);
+}
+
+/* Form inside the dialog */
+#task-form {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#task-form h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+/* Form field label + input pairs */
+.form-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.form-label input[type="text"],
+.form-label textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #bdc3c7;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+  color: #2c3e50;
+  resize: vertical;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-label input[type="text"]:focus,
+.form-label textarea:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+.form-label input[type="text"]::placeholder,
+.form-label textarea::placeholder {
+  color: #bdc3c7;
+  font-weight: 400;
+}
+
+/* Modal action buttons row */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ── Generic Button Styles ────────────────────────────────── */
+.btn {
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  border: 1px solid transparent;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Cancel button — neutral / outlined */
+.btn-cancel {
+  background: #ffffff;
+  border-color: #bdc3c7;
+  color: #555;
+}
+
+.btn-cancel:hover {
+  background: #f0f4f8;
+  border-color: #95a5a6;
+}
+
+/* Primary button — solid blue */
+.btn-primary {
+  background: #3498db;
+  border-color: #3498db;
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background: #2980b9;
+  border-color: #2980b9;
+}

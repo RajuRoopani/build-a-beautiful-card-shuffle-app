@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="app.js" defer></script>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="app-header">
+    <h1 class="app-title">Task Dashboard</h1>
+    <button id="open-modal-btn" class="btn btn-new-task" type="button">
+      ＋ New Task
+    </button>
+  </header>
+
+  <!-- ===== TWO-COLUMN CONTENT AREA ===== -->
+  <div class="app-content">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" aria-label="Task list">
+
+      <!-- Filter buttons — rendered (and re-rendered) by JS -->
+      <div class="filter-bar" id="filter-bar" role="toolbar" aria-label="Filter tasks"></div>
+
+      <!-- Task list — rendered (and re-rendered) by JS -->
+      <ul class="task-list" id="task-list" role="listbox" aria-label="Tasks"></ul>
+
+    </aside>
+
+    <!-- DETAIL PANEL — rendered by JS -->
+    <main id="detail-panel" aria-label="Task details">
+      <!-- JS renders task details or an empty-state placeholder here -->
+    </main>
+
+  </div><!-- /.app-content -->
+
+  <!-- ===== CREATE TASK MODAL ===== -->
+  <dialog id="task-modal" aria-labelledby="modal-heading" aria-modal="true">
+    <form id="task-form" method="dialog" novalidate>
+
+      <h2 id="modal-heading">Create New Task</h2>
+
+      <label class="form-label" for="task-title">
+        Title
+        <input
+          type="text"
+          id="task-title"
+          name="task-title"
+          placeholder="Enter a task title…"
+          required
+          maxlength="100"
+          autocomplete="off"
+        />
+      </label>
+
+      <label class="form-label" for="task-description">
+        Description
+        <textarea
+          id="task-description"
+          name="task-description"
+          rows="4"
+          placeholder="Optional description…"
+        ></textarea>
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" id="modal-cancel-btn" class="btn btn-cancel">
+          Cancel
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Create Task
+        </button>
+      </div>
+
+    </form>
+  </dialog>
+
+</body>
+</html>
